@@ -14,23 +14,23 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "UCAN Innovation & Entrepreneurship Center",
-    template: "%s | UCAN I&E Center",
+    default: "UCAN Community",
+    template: "UCAN Community",
   },
   description:
     "Community-driven hub for innovators, founders, and creators at UCAN. Programs, events, resources, and mentorship.",
   metadataBase: new URL("https://ucan.example.edu"),
   openGraph: {
-    title: "UCAN Innovation & Entrepreneurship Center",
+    title: "UCAN Community",
     description:
       "Join a community of 500+ builders. Programs, events, resources, and mentorship.",
     url: "https://ucan.example.edu",
-    siteName: "UCAN I&E Center",
+    siteName: "UCAN Community",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "UCAN Innovation & Entrepreneurship Center",
+    title: "UCAN Community",
     description:
       "Join a community of 500+ builders. Programs, events, resources, and mentorship.",
   },
