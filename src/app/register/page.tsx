@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ContactFooter from "@/components/ContactFooter";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -75,9 +76,8 @@ export default function RegisterPage() {
   return (
 
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <div className="container-page max-w-2xl mx-auto px-4 py-10">
+      <div className="container-page max-w-2xl mx-auto px-4 py-10 mb-30">
         <div className="mb-8">
-
           <h1 className="text-3xl font-semibold">Register</h1>
           <p className="text-[var(--muted-foreground)] mt-2">
             Join the UCAN community. Fill in your details below.
@@ -201,6 +201,7 @@ export default function RegisterPage() {
           </div>
         </form>
       </div>
+      <ContactFooter />
     </div>
   );
 }
