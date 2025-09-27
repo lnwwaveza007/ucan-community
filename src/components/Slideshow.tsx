@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image, { StaticImageData } from "next/image";
+import { AnimatePresence, motion } from "motion/react";
 
 type SlideshowProps = {
   images: Array<{ src: StaticImageData; alt?: string }>
@@ -37,16 +38,22 @@ export default function Slideshow({ images, intervalMs = 3500 }: SlideshowProps)
     <div className="relative h-full w-full">
       {/* Slides */}
       <div className="relative h-full w-full">
-        {items.map((img, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ opacity: i === index ? 1 : 0 }}
-            aria-hidden={i !== index}
-          >
-            <Image src={img.src} alt={img.alt ?? ""} fill className="object-cover" priority={i === 0} sizes="(min-width: 768px) 50vw, 100vw" />
-          </div>
-        ))}
+        <AnimatePresence mode="wait">
+          {items.map((img, i) => (
+            i === index ? (
+              <motion.div
+                key={i}
+                className="absolute inset-0"
+                initial={{ opacity: 0.0, scale: 1.02 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.995 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              >
+                <Image src={img.src} alt={img.alt ?? ""} fill className="object-cover" priority sizes="(min-width: 768px) 50vw, 100vw" />
+              </motion.div>
+            ) : null
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* Controls */}

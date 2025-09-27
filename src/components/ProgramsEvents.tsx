@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { motion } from "motion/react";
 import founder_sprint_week_1 from "../images/programs/mockup.jpg";
 import founder_sprint_week_2 from "../images/programs/mockup2.jpg";
 import founder_sprint_week_3 from "../images/programs/mockup3.jpg";
@@ -39,17 +41,27 @@ export default function ProgramsEvents() {
     <section id="programs" className="py-16 md:py-20 bg-[var(--muted-100)] dark:bg-[color-mix(in_srgb,var(--color-card-dark)_84%,transparent)]">
       <div className="container-page px-4">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Programs & Events</h2>
             <p className="mt-2 text-[var(--color-muted-700)] dark:text-white/80 max-w-xl">Discover upcoming programs and explore past events.</p>
-          </div>
+          </motion.div>
         </div>
 
         <div className="mt-6 grid md:grid-cols-3 gap-4">
-          {upcomingPrograms.map((i) => (
-            <div
+          {upcomingPrograms.map((i, idx) => (
+            <motion.div
               key={i.title}
               className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-lg ring-1 ring-black/5"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ type: "spring", stiffness: 140, damping: 18, delay: idx * 0.05 }}
+              whileHover={{ y: -4 }}
             >
               {/* Gradient border wrapper */}
               <div className="p-[1px] bg-gradient-to-r from-fuchsia-500 via-sky-500 to-emerald-500">
@@ -79,15 +91,19 @@ export default function ProgramsEvents() {
                     </div>
                     <div className="text-sm text-[var(--color-muted-700)] mt-1">{i.description}</div>
                     <div className="mt-4">
-                      <button className="group relative rounded-[999px] px-5 h-10 font-medium text-white">
+                      <motion.button
+                        className="group relative rounded-[999px] px-5 h-10 font-medium text-white"
+                        whileHover={{ y: -2, scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
                         <span className="absolute inset-0 rounded-[999px] bg-gradient-to-r from-fuchsia-600 via-sky-600 to-emerald-600 opacity-90 transition group-hover:opacity-100" />
                         <span className="relative">Register</span>
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -97,12 +113,20 @@ export default function ProgramsEvents() {
             <a className="text-sm text-[var(--color-brand)] hover:underline" href="#">View all</a>
           </div>
           <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {pastPrograms.map((i) => (
-              <div key={i.title} className="rounded-[var(--radius-md)] border border-[var(--color-muted-300)] p-4 hover:bg-white/60 dark:hover:bg-white/5">
+            {pastPrograms.map((i, idx) => (
+              <motion.div
+                key={i.title}
+                className="rounded-[var(--radius-md)] border border-[var(--color-muted-300)] p-4 hover:bg-white/60 dark:hover:bg-white/5"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: idx * 0.05 }}
+                whileHover={{ y: -2 }}
+              >
                 <div className="text-sm text-[var(--color-muted-700)]">{i.date}</div>
                 <div className="font-medium">{i.title}</div> 
                 <Image src={i.image} alt={i.title} className="w-full object-cover rounded-[var(--radius-lg)] mt-4" />
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

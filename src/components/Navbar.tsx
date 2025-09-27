@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "motion/react";
 import logo from "@/images/icon-no-bg.png";
 
 export default function Navbar() {
@@ -8,18 +9,35 @@ export default function Navbar() {
     <header className="sticky top-0 z-30 border-b border-[color-mix(in_srgb,var(--color-muted-300)_40%,transparent)] bg-[color-mix(in_srgb,var(--background)_86%,transparent)] backdrop-blur-md">
       <div className="container-page px-4 py-3 flex items-center justify-between">
         <Link href="#" className="flex items-center gap-3">
-          <Image src={logo} alt="Logo" width={100} height={100} />
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }}>
+            <Image src={logo} alt="Logo" width={100} height={100} />
+          </motion.div>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm">
-          <a href="#programs" className="hover:opacity-80">Programs</a>
-          <a href="#events" className="hover:opacity-80">Events</a>
-          {/* <a href="#resources" className="hover:opacity-80">Resources</a> */}
-          {/* <a href="#blog" className="hover:opacity-80">Blog</a> */}
-          <a href="#community" className="hover:opacity-80">Community</a>
-          <a href="#contact" className="hover:opacity-80">Contact</a>
+          {[
+            { href: "#programs", label: "Programs" },
+            { href: "#events", label: "Events" },
+            // { href: "#resources", label: "Resources" },
+            // { href: "#blog", label: "Blog" },
+            { href: "#community", label: "Community" },
+            { href: "#contact", label: "Contact" },
+          ].map((item) => (
+            <motion.a
+              key={item.href}
+              href={item.href}
+              className="hover:opacity-80"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              {item.label}
+            </motion.a>
+          ))}
         </nav>
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/register" className="rounded-[999px] px-4 h-10 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] flex items-center">Join Now</Link>
+          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+            <Link href="/register" className="rounded-[999px] px-4 h-10 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] flex items-center">Join Now</Link>
+          </motion.div>
         </div>
         {/* Mobile menu */}
         <details className="md:hidden relative">
@@ -28,13 +46,27 @@ export default function Navbar() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
           </summary>
           <div className="absolute right-0 mt-2 w-56 glass-card rounded-[var(--radius-lg)] p-3 flex flex-col gap-1">
-            <a href="#programs" className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]">Programs</a>
-            <a href="#events" className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]">Events</a>
-            {/* <a href="#resources" className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]">Resources</a> */}
-            {/* <a href="#blog" className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]">Blog</a> */}
-            <a href="#community" className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]">Community</a>
-            <a href="#contact" className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]">Contact</a>
-            <Link href="/register" className="mt-2 rounded-[999px] px-4 h-10 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] flex items-center">Join Now</Link>
+            {[
+              { href: "#programs", label: "Programs" },
+              { href: "#events", label: "Events" },
+              // { href: "#resources", label: "Resources" },
+              // { href: "#blog", label: "Blog" },
+              { href: "#community", label: "Community" },
+              { href: "#contact", label: "Contact" },
+            ].map((item) => (
+              <motion.a
+                key={item.href}
+                href={item.href}
+                className="px-3 py-2 rounded-[var(--radius-md)] hover:bg-[var(--color-muted-100)]"
+                whileHover={{ x: 2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {item.label}
+              </motion.a>
+            ))}
+            <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
+              <Link href="/register" className="mt-2 rounded-[999px] px-4 h-10 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] flex items-center">Join Now</Link>
+            </motion.div>
           </div>
         </details>
       </div>
