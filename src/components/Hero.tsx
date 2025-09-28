@@ -3,12 +3,10 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import bgImage from "@/images/landing-page/background.png";
 import Slideshow from "@/components/Slideshow";
-import s1 from "@/images/slide-show/test1.jpg";
-import s2 from "@/images/slide-show/test2.jpg";
-import s3 from "@/images/slide-show/test3.jpg";
-import s4 from "@/images/slide-show/test4.jpg";
+export type Slide = { src: string; alt?: string };
+import { toDisplaySrc } from "@/lib/image";
 
-export default function Hero() {
+export default function Hero({ slides }: { slides: Slide[] }) {
   return (
     <section className="relative text-white">
       {/* Background image */}
@@ -78,14 +76,14 @@ export default function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ type: "spring", stiffness: 120, damping: 18 }}
-          >
+            >
             <motion.div
               className="relative aspect-[4/3] rounded-[var(--radius-lg)] overflow-hidden border border-white/10"
               initial={{ scale: 0.98 }}
               whileHover={{ scale: 1.01 }}
               transition={{ type: "spring", stiffness: 250, damping: 20 }}
             >
-              <Slideshow images={[{ src: s1 }, { src: s2 }, { src: s3 }, { src: s4 }]} intervalMs={3500} />
+              <Slideshow images={slides.map((s) => ({ src: toDisplaySrc(s.src) as any, alt: s.alt })) as any} intervalMs={3500} />
             </motion.div>
           </motion.div>
         </div>

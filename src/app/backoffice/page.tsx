@@ -1,6 +1,7 @@
 import { getAdminSession } from "@/lib/auth";
 import Link from "next/link";
 import LogoutButton from "./LogoutButton";
+import Editor from "./Editor";
 
 export default async function BackofficePage() {
   const session = await getAdminSession();
@@ -19,25 +20,9 @@ export default async function BackofficePage() {
       </div>
       <p style={{ color: "#555", marginTop: 8 }}>Welcome {session?.username ?? "Admin"}.</p>
 
-      <section style={{ marginTop: 24, display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
-        <div style={{ border: "1px solid #eee", borderRadius: 10, padding: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600 }}>Stats</h2>
-          <p>Total members: 512</p>
-          <p>New this week: 24</p>
-        </div>
-        <div style={{ border: "1px solid #eee", borderRadius: 10, padding: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600 }}>Recent Signups</h2>
-          <ul style={{ marginTop: 8 }}>
-            <li>alice@example.com</li>
-            <li>bob@example.com</li>
-            <li>carol@example.com</li>
-          </ul>
-        </div>
-        <div style={{ border: "1px solid #eee", borderRadius: 10, padding: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600 }}>Actions</h2>
-          <button style={{ padding: 8, background: "#111", color: "#fff", borderRadius: 6 }}>Sync Data</button>
-        </div>
-      </section>
+      <div style={{ marginTop: 24 }}>
+        <Editor />
+      </div>
     </main>
   );
 }

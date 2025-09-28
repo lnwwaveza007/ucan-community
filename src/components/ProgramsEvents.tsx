@@ -1,42 +1,11 @@
 "use client";
 import Image from "next/image";
+import { toDisplaySrc } from "@/lib/image";
 import { motion } from "motion/react";
-import founder_sprint_week_1 from "../images/programs/mockup.jpg";
-import founder_sprint_week_2 from "../images/programs/mockup2.jpg";
-import founder_sprint_week_3 from "../images/programs/mockup3.jpg";
-import founder_sprint_week_4 from "../images/programs/mockup4.jpg";
 
-const pastPrograms = [
-  {
-    title: "Founder Sprint Week 1",
-    date: "Oct 12, 2025",
-    description: "Intensive program to validate ideas and ship MVPs.",
-    image: founder_sprint_week_1,
-  },
-  {
-    title: "Founder Sprint Week 2",
-    date: "Oct 12, 2025",
-    description: "Intensive program to validate ideas and ship MVPs.",
-    image: founder_sprint_week_2,
-  },
-  {
-    title: "Founder Sprint Week 3",
-    date: "Oct 12, 2025",
-    description: "Intensive program to validate ideas and ship MVPs.",
-    image: founder_sprint_week_3,
-  },
-];
+export type ProgramCard = { title: string; date: string; description?: string; image?: string };
 
-const upcomingPrograms = [
-  {
-    title: "Founder Sprint Week",
-    date: "Oct 12, 2025",
-    description: "Intensive program to validate ideas and ship MVPs.",
-    image: founder_sprint_week_4,
-  },
-];
-
-export default function ProgramsEvents() {
+export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upcomingPrograms: ProgramCard[]; pastPrograms: ProgramCard[] }) {
   return (
     <section id="programs" className="py-16 md:py-20 bg-[var(--muted-100)] dark:bg-[color-mix(in_srgb,var(--color-card-dark)_84%,transparent)]">
       <div className="container-page px-4">
@@ -73,7 +42,9 @@ export default function ProgramsEvents() {
                   {/* Content */}
                   <div className="p-4">
                     <div className="relative">
-                      <Image src={i.image} alt={i.title} className="w-full h-full object-cover rounded-[var(--radius-lg)]" />
+                      {i.image ? (
+                        <Image src={toDisplaySrc(i.image)} alt={i.title} width={800} height={600} className="w-full h-full object-cover rounded-[var(--radius-lg)]" />
+                      ) : null}
                       {/* Only upcoming badge */}
                       <div className="absolute top-2 left-2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-600 to-sky-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
@@ -125,7 +96,9 @@ export default function ProgramsEvents() {
               >
                 <div className="text-sm text-[var(--color-muted-700)]">{i.date}</div>
                 <div className="font-medium">{i.title}</div> 
-                <Image src={i.image} alt={i.title} className="w-full object-cover rounded-[var(--radius-lg)] mt-4" />
+                {i.image ? (
+                  <Image src={toDisplaySrc(i.image)} alt={i.title} width={800} height={600} className="w-full object-cover rounded-[var(--radius-lg)] mt-4" />
+                ) : null}
               </motion.div>
             ))}
           </div>
