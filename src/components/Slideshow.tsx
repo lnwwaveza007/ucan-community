@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image, { StaticImageData } from "next/image";
+import { toDisplaySrc } from "@/lib/image";
 import { AnimatePresence, motion } from "motion/react";
 
 type SlideshowProps = {
-  images: Array<{ src: StaticImageData; alt?: string }>
+  images: Array<{ src: string | StaticImageData; alt?: string }>
   intervalMs?: number;
 };
 
@@ -46,10 +47,10 @@ export default function Slideshow({ images, intervalMs = 3500 }: SlideshowProps)
                 className="absolute inset-0"
                 initial={{ opacity: 0.0, scale: 1.02 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.995 }}
+                exit={{ opacity: 1, scale: 0.995 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
-                <Image src={img.src} alt={img.alt ?? ""} fill className="object-cover" priority sizes="(min-width: 768px) 50vw, 100vw" />
+                <Image src={typeof img.src === 'string' ? toDisplaySrc(img.src) : (img.src as any)} alt={img.alt ?? ""} fill className="object-cover" priority sizes="(min-width: 768px) 50vw, 100vw" />
               </motion.div>
             ) : null
           ))}
