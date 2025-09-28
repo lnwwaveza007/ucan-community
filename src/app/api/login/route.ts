@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { isAdminCreds, setAdminSession } from "@/lib/auth";
+import { isAdminCreds, buildAdminSessionCookie } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,11 +21,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    await setAdminSession({ username, issuedAt: Date.now() });
-
+    const c = buildAdminSessionCookie({ username, issuedAt: Date.now() });
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": `${encodeURIComponent(c.name)}=${encodeURIComponent(c.value)}; Path=${c.options.path}; Max-Age=${c.options.maxAge}; HttpOnly; SameSite=${c.options.sameSite};${c.options.secure ? " Secure;" : ""}`,
+      },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

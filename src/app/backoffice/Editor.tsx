@@ -64,33 +64,7 @@ export default function Editor() {
     setData(JSON.parse(JSON.stringify(original)) as Editable);
   }
 
-  async function selectAndUpload(onUploaded: (url: string) => void) {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      const key = `uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '-')}`;
-      const r = await fetch("/api/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, contentType: file.type || "application/octet-stream" }),
-      });
-      if (!r.ok) {
-        setError("Failed to get upload URL");
-        return;
-      }
-      const { uploadUrl, publicUrl } = await r.json();
-      const put = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file });
-      if (!put.ok) {
-        setError("Upload failed");
-        return;
-      }
-      onUploaded(publicUrl);
-    };
-    input.click();
-  }
+  // upload handled inside MediaPicker
 
   if (!data) return <div>Loading...</div>;
 
@@ -111,7 +85,7 @@ export default function Editor() {
                 update("slideshow", next);
               }} placeholder="/images/slide-show/test1.jpg" className="border rounded px-2 py-1" />
               <div className="flex gap-2">
-                <button onClick={() => setPickerOpen(() => (url) => {
+                <button onClick={() => setPickerOpen(() => (url: string) => {
                   const next = [...data.slideshow];
                   next[idx] = { ...next[idx], src: url } as SlideshowItem;
                   update("slideshow", next);
@@ -166,7 +140,7 @@ export default function Editor() {
                 update("upcomingPrograms", next);
               }} placeholder="/images/programs/mockup4.jpg" className="border rounded px-2 py-1" />
               <div className="flex gap-2">
-                <button onClick={() => setPickerOpen(() => (url) => {
+                <button onClick={() => setPickerOpen(() => (url: string) => {
                   const next = [...data.upcomingPrograms];
                   next[idx] = { ...next[idx], image: url } as ProgramItem;
                   update("upcomingPrograms", next);
@@ -216,7 +190,7 @@ export default function Editor() {
                 update("pastPrograms", next);
               }} placeholder="/images/programs/mockup.jpg" className="border rounded px-2 py-1" />
               <div className="flex gap-2">
-                <button onClick={() => setPickerOpen(() => (url) => {
+                <button onClick={() => setPickerOpen(() => (url: string) => {
                   const next = [...data.pastPrograms];
                   next[idx] = { ...next[idx], image: url } as ProgramItem;
                   update("pastPrograms", next);
@@ -256,7 +230,7 @@ export default function Editor() {
                 update("communityPartners", next);
               }} placeholder="/images/partners/logo.png" className="border rounded px-2 py-1" />
               <div className="flex gap-2">
-                <button onClick={() => setPickerOpen(() => (url) => {
+                <button onClick={() => setPickerOpen(() => (url: string) => {
                   const next = [...data.communityPartners];
                   next[idx] = { ...next[idx], logo: url } as PartnerItem;
                   update("communityPartners", next);
@@ -296,7 +270,7 @@ export default function Editor() {
                 update("partners", next);
               }} placeholder="/images/partners/logo.png" className="border rounded px-2 py-1" />
               <div className="flex gap-2">
-                <button onClick={() => setPickerOpen(() => (url) => {
+                <button onClick={() => setPickerOpen(() => (url: string) => {
                   const next = [...data.partners];
                   next[idx] = { ...next[idx], logo: url } as PartnerItem;
                   update("partners", next);

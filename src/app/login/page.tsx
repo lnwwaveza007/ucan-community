@@ -26,7 +26,7 @@ export default function LoginPage() {
         return;
       }
       router.replace("/backoffice");
-    } catch (err) {
+    } catch {
       setError("Network error");
       setLoading(false);
     }

@@ -4,8 +4,9 @@ import Image, { StaticImageData } from "next/image";
 import { toDisplaySrc } from "@/lib/image";
 import { AnimatePresence, motion } from "motion/react";
 
+type SlideshowImage = { src: string | StaticImageData; alt?: string };
 type SlideshowProps = {
-  images: Array<{ src: string | StaticImageData; alt?: string }>
+  images: Array<SlideshowImage>
   intervalMs?: number;
 };
 
@@ -50,7 +51,7 @@ export default function Slideshow({ images, intervalMs = 3500 }: SlideshowProps)
                 exit={{ opacity: 1, scale: 0.995 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
               >
-                <Image src={typeof img.src === 'string' ? toDisplaySrc(img.src) : (img.src as any)} alt={img.alt ?? ""} fill className="object-cover" priority sizes="(min-width: 768px) 50vw, 100vw" />
+                <Image src={typeof img.src === 'string' ? toDisplaySrc(img.src) : (img.src as StaticImageData)} alt={img.alt ?? ""} fill className="object-cover" priority sizes="(min-width: 768px) 50vw, 100vw" />
               </motion.div>
             ) : null
           ))}

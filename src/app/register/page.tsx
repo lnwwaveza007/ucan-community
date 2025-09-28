@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import ContactFooter from "@/components/ContactFooter";
 
 export default function RegisterPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [form, setForm] = useState({
     email: "",
     fullname: "",

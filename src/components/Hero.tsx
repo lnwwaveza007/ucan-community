@@ -83,7 +83,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
               whileHover={{ scale: 1.01 }}
               transition={{ type: "spring", stiffness: 250, damping: 20 }}
             >
-              <Slideshow images={slides.map((s) => ({ src: toDisplaySrc(s.src) as any, alt: s.alt })) as any} intervalMs={3500} />
+              <Slideshow images={slides.map((s) => ({ src: toDisplaySrc(s.src), alt: s.alt }))} intervalMs={3500} />
             </motion.div>
           </motion.div>
         </div>

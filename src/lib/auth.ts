@@ -39,24 +39,38 @@ function verify(signed: string): string | null {
   }
 }
 
-export async function setAdminSession(session: AdminSession): Promise<void> {
+export function buildAdminSessionCookie(session: AdminSession): {
+  name: string;
+  value: string;
+  options: {
+    httpOnly: boolean;
+    sameSite: "lax" | "strict" | "none";
+    secure: boolean;
+    path: string;
+    maxAge: number;
+  };
+} {
   const payload = Buffer.from(JSON.stringify(session)).toString("base64url");
   const signed = sign(payload);
-  cookies().set(ADMIN_COOKIE_NAME, signed, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 8, // 8 hours
-  });
+  return {
+    name: ADMIN_COOKIE_NAME,
+    value: signed,
+    options: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 8, // 8 hours
+    },
+  };
 }
 
-export async function clearAdminSession(): Promise<void> {
-  cookies().delete(ADMIN_COOKIE_NAME);
+export function buildClearAdminCookie(): { name: string; value: string; options: { path: string; maxAge: number } } {
+  return { name: ADMIN_COOKIE_NAME, value: "", options: { path: "/", maxAge: 0 } };
 }
 
 export async function getAdminSession(): Promise<AdminSession | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const signed = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
   if (!signed) return null;
   const payload = verify(signed);
