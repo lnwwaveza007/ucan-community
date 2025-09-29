@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAdminSession } from "@/lib/auth";
 import { getBucket, getPublicBaseUrl, getS3Client } from "@/lib/s3";
-import { DeleteObjectCommand, GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, ListObjectsV2Command, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export async function GET(req: NextRequest) {
@@ -47,6 +47,31 @@ export async function DELETE(req: NextRequest) {
   const client = getS3Client();
   const bucket = getBucket();
   await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+  return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+}
+
+export async function PUT(req: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
+  const { searchParams } = new URL(req.url);
+  const key = searchParams.get("key");
+  if (!key) {
+    return new Response(JSON.stringify({ error: "Missing key" }), { status: 400, headers: { "Content-Type": "application/json" } });
+  }
+  const contentType = req.headers.get("content-type") || "application/octet-stream";
+  const bodyAb = await req.arrayBuffer();
+
+  const client = getS3Client();
+  const bucket = getBucket();
+  await client.send(new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: new Uint8Array(bodyAb),
+    ContentType: contentType,
+    ACL: "public-read",
+  }));
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 

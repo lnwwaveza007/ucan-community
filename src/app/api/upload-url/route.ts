@@ -21,7 +21,17 @@ export async function POST(req: NextRequest) {
   const url = await getSignedUrl(client, command, { expiresIn: 60 * 5 });
   const base = getPublicBaseUrl();
   const publicUrl = `${base}/${encodeURIComponent(key).replace(/%2F/g, '/')}`;
-  return new Response(JSON.stringify({ uploadUrl: url, publicUrl }), { status: 200, headers: { "Content-Type": "application/json" } });
+  // If the signed URL is http (mixed content risk), provide our HTTPS proxy route for upload instead
+  // Browsers block http uploads from https origins
+  let safeUploadUrl = url;
+  try {
+    const u = new URL(url);
+    if (u.protocol === "http:") {
+      // Use our secure server-side proxy upload path
+      safeUploadUrl = `/api/media?key=${encodeURIComponent(key)}`;
+    }
+  } catch {}
+  return new Response(JSON.stringify({ uploadUrl: safeUploadUrl, publicUrl }), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
 
