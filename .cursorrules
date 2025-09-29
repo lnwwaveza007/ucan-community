@@ -1,0 +1,94 @@
+name: UCAN Community Rules
+
+ignore:
+  - node_modules/**
+  - .next/**
+  - build/**
+  - out/**
+  - next-env.d.ts
+
+settings:
+  general:
+    goals:
+      - Keep code clear, explicit, and strongly typed
+      - Avoid accidental credential leaks; never hardcode secrets in code or examples
+      - Prefer maintainability over premature optimization
+  git:
+    autoCommit: false
+  test:
+    runOnFileChange: false
+
+conventions:
+  languages:
+    typescript:
+      - Enable strict TypeScript; keep `noImplicitAny`
+      - Prefer explicit return types for exported functions
+  naming:
+    - Functions: verbs; variables: meaningful nouns
+    - Avoid single-letter identifiers
+  formatting:
+    - Match existing style; do not reformat unrelated code
+    - Use multi-line blocks over complex one-liners
+  errors:
+    - Handle errors with useful messages; do not swallow
+    - Early-return guard clauses over deep nesting
+
+stack:
+  framework: Next.js 15 (App Router)
+  runtime: Node 18+
+  ui: React 19, Tailwind v4
+  data: MongoDB
+  storage: S3/MinIO via @aws-sdk/client-s3
+
+env:
+  required:
+    - AUTH_SECRET
+    - MONGODB_URI
+    - MONGODB_DB
+    - S3_BUCKET
+    - (S3_ACCESS_KEY or AWS_ACCESS_KEY_ID)
+    - (S3_SECRET_KEY or AWS_SECRET_ACCESS_KEY)
+  optional:
+    - S3_PUBLIC_BASE_URL
+    - S3_ENDPOINT
+    - AWS_REGION
+    - ADMIN_USERNAME
+    - ADMIN_PASSWORD
+
+files:
+  sensitive:
+    - src/lib/auth.ts
+    - src/lib/mongodb.ts
+    - src/lib/s3.ts
+    - middleware.ts
+  highImpact:
+    - src/app/api/**
+    - src/app/backoffice/**
+
+workflows:
+  addApiRoute:
+    - Create route under `src/app/api/<name>/route.ts`
+    - Export HTTP verbs (GET/POST/etc.)
+    - Validate inputs; return JSON responses with proper status codes
+    - If admin-only, verify with `getAdminSession()`
+  addImageSource:
+    - Update `next.config.ts` remotePatterns if needed
+    - Prefer using `toDisplaySrc()` to leverage proxy when uncertain
+  mediaUpload:
+    - Use `POST /api/upload-url` to get signed URL and public URL
+    - Fall back to `PUT /api/media` when only http is available
+
+guardrails:
+  - Never log secrets or cookies
+  - Do not expose internal S3 endpoints to the client; use public base or proxy
+  - Avoid changing cookie names or auth formats without migration notes
+  - Do not introduce breaking changes to `SiteContent` without backoffice updates
+
+review_checklist:
+  - Are env vars referenced documented in README?
+  - Do admin-only endpoints enforce `getAdminSession()`?
+  - Is error handling robust and user-safe?
+  - Are images compatible with Next Image config?
+  - Do edits pass `npm run lint`?
+
+

@@ -1,6 +1,6 @@
 import { MongoClient, ServerApiVersion, type Db, type Document } from "mongodb";
 
-const DEFAULT_URI = "mongodb://admin:secret123@shared1.bsthun.in:11802/";
+const DEFAULT_URI = "mongodb://localhost:27017/";
 const DB_NAME = process.env.MONGODB_DB || "ucan_community";
 
 declare global {
