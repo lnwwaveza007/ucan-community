@@ -1,5 +1,5 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { ObjectId } from "mongodb";
+import { getCollection } from "./mongodb";
 
 export type SlideshowItem = { src: string; alt?: string };
 export type ProgramItem = { title: string; date: string; description?: string; image?: string };
@@ -51,25 +51,38 @@ export const defaultContent: SiteContent = {
   ],
 };
 
-function getStorePath() {
-  return path.join(process.cwd(), "data", "content.json");
-}
+type ContentDoc = SiteContent & { _id?: ObjectId; key: "site_content" };
+
+const COLLECTION_NAME = "content";
+const CONTENT_KEY: ContentDoc["key"] = "site_content";
 
 export async function readContent(): Promise<SiteContent> {
   try {
-    const p = getStorePath();
-    const buf = await fs.readFile(p, "utf8");
-    const json = JSON.parse(buf) as SiteContent;
-    return json;
+    const col = await getCollection<ContentDoc>(COLLECTION_NAME);
+    const doc = await col.findOne({ key: CONTENT_KEY });
+    if (!doc) {
+      return defaultContent;
+    }
+    // Return only the site content fields
+    return {
+      slideshow: doc.slideshow,
+      upcomingPrograms: doc.upcomingPrograms,
+      pastPrograms: doc.pastPrograms,
+      communityPartners: doc.communityPartners,
+      partners: doc.partners,
+    } satisfies SiteContent;
   } catch {
     return defaultContent;
   }
 }
 
 export async function writeContent(content: SiteContent): Promise<void> {
-  const p = getStorePath();
-  await fs.mkdir(path.dirname(p), { recursive: true });
-  await fs.writeFile(p, JSON.stringify(content, null, 2), "utf8");
+  const col = await getCollection<ContentDoc>(COLLECTION_NAME);
+  await col.updateOne(
+    { key: CONTENT_KEY },
+    { $set: { ...content, key: CONTENT_KEY } },
+    { upsert: true }
+  );
 }
 
 
