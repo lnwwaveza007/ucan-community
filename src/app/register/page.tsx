@@ -5,20 +5,36 @@ import ContactFooter from "@/components/ContactFooter";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { AiOutlineTeam } from "react-icons/ai";
 import { MdOutlineQuestionAnswer } from "react-icons/md";
+import { useRouter } from "next/navigation";
 
 type RoleKey =
   | "outreach_sponsor"
   | "knowledge_knowledge"
   | "knowledge_learning_design"
-  | "knowledge_sustainability"
   | "marketing_video_editor"
   | "marketing_graphic_designer"
   | "marketing_photographer"
   | "marketing_content_writer"
+  | "operation_sustainability"
   | "operation_finance"
   | "operation_hr"
   | "operation_document"
   | "event_organizer";
+
+const ROLE_LABELS: Record<RoleKey, string> = {
+  outreach_sponsor: "Sponsor",
+  knowledge_knowledge: "Knowledge",
+  knowledge_learning_design: "Learning Design",
+  marketing_video_editor: "Video Editor",
+  marketing_graphic_designer: "Graphic Designer",
+  marketing_photographer: "Photographer",
+  marketing_content_writer: "Content Writer",
+  operation_sustainability: "Sustainability",
+  operation_finance: "Finance",
+  operation_hr: "Human Resource (HR)",
+  operation_document: "Document",
+  event_organizer: "Event Organizer",
+};
 
 type FormState = {
   fullname: string;
@@ -79,16 +95,17 @@ function RoleCard({ title, description, checked, onToggle, inputId }: RoleCardPr
 }
 
 export default function RegisterPage() {
+  const router = useRouter();
   const emptyRoles: Record<RoleKey, boolean> = useMemo(
     () => ({
       outreach_sponsor: false,
       knowledge_knowledge: false,
       knowledge_learning_design: false,
-      knowledge_sustainability: false,
       marketing_video_editor: false,
       marketing_graphic_designer: false,
       marketing_photographer: false,
       marketing_content_writer: false,
+      operation_sustainability: false,
       operation_finance: false,
       operation_hr: false,
       operation_document: false,
@@ -206,56 +223,51 @@ export default function RegisterPage() {
 
     try {
       setSubmitting(true);
-      // NOTE: Backend currently expects older shape. We keep posting only a subset
-      // or the whole form for future compatibility.
-      const resp = await fetch("/api/register", {
+
+      const params = new URLSearchParams();
+      params.set("fullname", String(form.fullname ?? ""));
+      params.set("nickname", String(form.nickname ?? ""));
+      params.set("faculty", String(form.faculty ?? ""));
+      params.set("major", String(form.major ?? ""));
+      params.set("phone", String(form.phone ?? ""));
+      params.set("email", String(form.email ?? ""));
+      params.set("contactOther", String(form.contactOther ?? ""));
+
+      const selectedRoleLabels = Object.entries(form.roles)
+        .filter(([, isSelected]) => Boolean(isSelected))
+        .map(([key]) => ROLE_LABELS[key as RoleKey]);
+      params.set("roles", selectedRoleLabels.join(","));
+
+      params.set("qWhy", String(form.qWhy ?? ""));
+      params.set("qHowHelp", String(form.qHowHelp ?? ""));
+      params.set("qPortfolio", String(form.qPortfolio ?? ""));
+      params.set("qExpect", String(form.qExpect ?? ""));
+
+      const res = await fetch(`/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: form.email,
           fullname: form.fullname,
           nickname: form.nickname,
           faculty: form.faculty,
           major: form.major,
-          years: "",
-          interests: JSON.stringify({
-            contactOther: form.contactOther,
-            phone: form.phone,
-            roles: form.roles,
-            qWhy: form.qWhy,
-            qHowHelp: form.qHowHelp,
-            qPortfolio: form.qPortfolio,
-            qExpect: form.qExpect,
-          }),
+          phone: form.phone,
+          email: form.email,
+          contactOther: form.contactOther,
+          roles: selectedRoleLabels,
+          qWhy: form.qWhy,
+          qHowHelp: form.qHowHelp,
+          qPortfolio: form.qPortfolio,
+          qExpect: form.qExpect,
         }),
       });
-      type RegisterApiResponse = { success?: boolean; error?: string };
-      const json: RegisterApiResponse | null = await resp.json().catch(() => null);
-      if (resp.ok && json?.success) {
-        setMessage("Thanks! Your application has been submitted.");
-        setForm({
-          fullname: "",
-          nickname: "",
-          faculty: "",
-          major: "",
-          phone: "",
-          email: "",
-          contactOther: "",
-          roles: emptyRoles,
-          qWhy: "",
-          qHowHelp: "",
-          qPortfolio: "",
-          qExpect: "",
-        });
-        setTouched({});
-        setFieldErrors({});
-      } else {
-        setError("Submission failed. Please try again later.");
+      if (!res.ok) {
+        throw new Error("Failed to submit form");
       }
+      router.push("/register/success");
     } catch {
-      setError("Network error. Please check your connection and try again.");
-    } finally {
       setSubmitting(false);
+      setError("Failed to redirect. Please try again.");
     }
   }
 
@@ -265,7 +277,7 @@ export default function RegisterPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-semibold">Apply to join UCAN Community</h1>
           <p className="text-[var(--muted-foreground)] mt-2">
-            Applications open from 5 - 10 October 2025
+            Applications open from 7 - 11 October 2025
           </p>
         </div>
 
@@ -488,13 +500,7 @@ export default function RegisterPage() {
                     onToggle={() => toggleRole("knowledge_learning_design")}
                     inputId="role-knowledge-learning-design"
                   />
-                  <RoleCard
-                    title="Sustainability"
-                    description="พัฒนาแนวทางและกิจกรรมที่ส่งเสริมความยั่งยืนทั้งด้านสิ่งแวดล้อมและสังคม"
-                    checked={form.roles.knowledge_sustainability}
-                    onToggle={() => toggleRole("knowledge_sustainability")}
-                    inputId="role-knowledge-sustainability"
-                  />
+                 
                 </div>
           </div>
 
@@ -535,6 +541,13 @@ export default function RegisterPage() {
           <div>
                 <div className="font-medium mb-2">Operation Team</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                   <RoleCard
+                    title="Sustainability"
+                    description="พัฒนาแนวทางและกิจกรรมที่ส่งเสริมความยั่งยืนทั้งด้านสิ่งแวดล้อมและสังคม"
+                    checked={form.roles.operation_sustainability}
+                    onToggle={() => toggleRole("operation_sustainability")}
+                    inputId="role-operation-sustainability"
+                  />
                   <RoleCard
                     title="Finance"
                     description="จัดการเรื่องงบประมาณ การเงิน และบัญชี"
