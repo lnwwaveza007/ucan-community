@@ -489,7 +489,7 @@ export default function RegisterPage() {
                   ))}
                   <option value={OTHER_VALUE}>Other</option>
                 </select>
-                {form.major === OTHER_VALUE || !form.faculty ? (
+                {form.major === OTHER_VALUE ? (
                   <input
                     type="text"
                     value={customMajor}
