@@ -1,39 +1,75 @@
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const {
-      email,
-      fullname,
-      nickname,
-      faculty,
-      major,
-      years,
-      interests,
-    } = data || {};
+    const contentType = request.headers.get("content-type") ?? "";
+    type Payload = Record<string, unknown>;
+    let payload: Payload = {};
+    if (contentType.includes("application/json")) {
+      payload = (await request.json().catch(() => ({}))) as Payload;
+    } else {
+      const url = new URL(request.url);
+      payload = Object.fromEntries(url.searchParams.entries());
+    }
 
-    if (!email || !fullname) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: email, fullname" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    function firstOf(obj: Payload, keys: string[]): unknown {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          return obj[key];
+        }
+      }
+      return undefined;
+    }
+
+    function asString(value: unknown): string {
+      if (value === undefined || value === null) return "";
+      if (Array.isArray(value)) return value.map((v) => String(v)).join(",");
+      return String(value);
+    }
+
+    // Normalize payload fields
+    const fullname = asString(firstOf(payload, ["fullname"]));
+    const nickname = asString(firstOf(payload, ["nickname"]));
+    const faculty = asString(firstOf(payload, ["faculty"]));
+    const major = asString(firstOf(payload, ["major"]));
+    const phone = asString(firstOf(payload, ["phone", "phoneNumber"]));
+    const email = asString(firstOf(payload, ["email"]));
+    const contactOther = asString(firstOf(payload, ["contactOther", "OtherContact"]));
+
+    const rolesValue = firstOf(payload, ["roles"]);
+    const rolesCsv = Array.isArray(rolesValue)
+      ? rolesValue.map((v) => String(v)).join(",")
+      : asString(rolesValue);
+
+    const qWhy = asString(firstOf(payload, ["qWhy", "WhyInterest"]));
+    const qHowHelp = asString(firstOf(payload, ["qHowHelp", "HelpTeam"]));
+    const qPortfolio = asString(firstOf(payload, ["qPortfolio", "Portfolio"]));
+    const qExpect = asString(firstOf(payload, ["qExpect", "WhatYouWant"]));
+
+    if (!fullname || !email) {
+      return new Response(JSON.stringify({ error: "Missing required fields: fullname, email" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const formUrl =
       "https://docs.google.com/forms/d/e/1FAIpQLSeQrBL5irwWvRlt45YL-rnOVuN8KkcG3iJZcJbP0yYabFwkeQ/formResponse";
 
     const params = new URLSearchParams();
-    // Fixed submit and usp params are generally ignored on POST, but included for parity
     params.set("submit", "Submit");
     params.set("usp", "pp_url");
-
-    // Map to Google Forms field entry IDs
-    params.set("entry.1126151848", String(email ?? ""));
-    params.set("entry.516453286", String(fullname ?? ""));
-    params.set("entry.41609756", String(nickname ?? ""));
-    params.set("entry.1737830178", String(faculty ?? ""));
-    params.set("entry.428879299", String(major ?? ""));
-    params.set("entry.878658340", String(years ?? ""));
-    params.set("entry.104768491", String(interests ?? ""));
+    // Map to Google Forms entry IDs per user's mapping
+    params.set("entry.1126151848", fullname);
+    params.set("entry.516453286", nickname);
+    params.set("entry.41609756", faculty);
+    params.set("entry.1737830178", major);
+    params.set("entry.428879299", phone);
+    params.set("entry.878658340", email);
+    params.set("entry.104768491", contactOther);
+    params.set("entry.1733853043", rolesCsv);
+    params.set("entry.1254533191", qWhy);
+    params.set("entry.583371985", qHowHelp);
+    params.set("entry.1776809438", qPortfolio);
+    params.set("entry.1816416847", qExpect);
 
     const resp = await fetch(formUrl, {
       method: "POST",
@@ -44,7 +80,6 @@ export async function POST(request: Request) {
       redirect: "manual",
     });
 
-    // Google Forms often responds with 200 and HTML, or 303 redirect. Treat 2xx/3xx as success
     if (resp.ok || (resp.status >= 300 && resp.status < 400)) {
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
@@ -58,8 +93,7 @@ export async function POST(request: Request) {
       { status: 502, headers: { "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error submitting form";
+    const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image, { StaticImageData } from "next/image";
 import { toDisplaySrc } from "@/lib/image";
 import { AnimatePresence, motion } from "motion/react";
+import { useI18n } from "@/lib/i18n/context";
 
 type SlideshowImage = { src: string | StaticImageData; alt?: string };
 type SlideshowProps = {
@@ -14,6 +15,7 @@ export default function Slideshow({ images, intervalMs = 3500 }: SlideshowProps)
   const [index, setIndex] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const count = images.length;
+  const { messages } = useI18n();
 
   const go = (next: number) => setIndex((prev) => (prev + next + count) % count);
   const goTo = (i: number) => setIndex(((i % count) + count) % count);
@@ -62,14 +64,14 @@ export default function Slideshow({ images, intervalMs = 3500 }: SlideshowProps)
       {count > 1 && (
         <>
           <button
-            aria-label="Previous slide"
+            aria-label={messages.slideshow.prev}
             onClick={() => { stop(); go(-1); start(); }}
             className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 grid place-items-center rounded-full bg-black/40 hover:bg-black/55 text-white"
           >
             ‹
           </button>
           <button
-            aria-label="Next slide"
+            aria-label={messages.slideshow.next}
             onClick={() => { stop(); go(1); start(); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 grid place-items-center rounded-full bg-black/40 hover:bg-black/55 text-white"
           >
@@ -80,7 +82,7 @@ export default function Slideshow({ images, intervalMs = 3500 }: SlideshowProps)
               <button
                 key={i}
                 onClick={() => { stop(); goTo(i); start(); }}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={`${messages.slideshow.gotoPrefix} ${i + 1}`}
                 className={`h-2.5 rounded-full transition-all ${i === index ? "w-6 bg-white" : "w-2.5 bg-white/60 hover:bg-white/80"}`}
               />
             ))}
