@@ -10,7 +10,7 @@ export default function Navbar() {
       <div className="container-page px-4 py-3 flex items-center justify-between">
         <Link href="#" className="flex items-center gap-3">
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }}>
-            <Image src={logo} alt="Logo" width={100} height={100} />
+            <Image src={logo} alt="Logo" width={120} height={120} />
           </motion.div>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm">

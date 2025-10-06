@@ -30,7 +30,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
             viewport={{ once: true, amount: 0.4 }}
             transition={{ type: "spring", stiffness: 120, damping: 18 }}
           >
-            <p className="inline-block text-xs uppercase tracking-[0.2em] text-white/70 mb-4">University Community for Builders</p>
+            <p className="inline-block text-xs uppercase tracking-[0.2em] text-white/70 mb-4">University Community for Entrepreneurs</p>
             <motion.h1
               className="text-4xl md:text-6xl font-extrabold leading-[1.05]"
               initial={{ opacity: 0, y: 16 }}
@@ -38,7 +38,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
               viewport={{ once: true }}
               transition={{ delay: 0.05, duration: 0.5, ease: "easeOut" }}
             >
-              Think. Experiment. <span className="text-[var(--accent-pink)]">Take Action</span>.
+              You can. <br/><span className="text-[var(--accent-pink)]">We all can.</span>
             </motion.h1>
             <motion.p
               className="mt-5 text-white/80 text-lg max-w-xl"

@@ -1,36 +1,192 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-// import { useRouter } from "next/navigation";
 import ContactFooter from "@/components/ContactFooter";
+import { IoIosInformationCircleOutline } from "react-icons/io";
+import { AiOutlineTeam } from "react-icons/ai";
+import { MdOutlineQuestionAnswer } from "react-icons/md";
+
+type RoleKey =
+  | "outreach_sponsor"
+  | "knowledge_knowledge"
+  | "knowledge_learning_design"
+  | "knowledge_sustainability"
+  | "marketing_video_editor"
+  | "marketing_graphic_designer"
+  | "marketing_photographer"
+  | "marketing_content_writer"
+  | "operation_finance"
+  | "operation_hr"
+  | "operation_document"
+  | "event_organizer";
+
+type FormState = {
+  fullname: string;
+  nickname: string;
+  faculty: string;
+  major: string;
+  phone: string;
+  email: string;
+  contactOther: string;
+  roles: Record<RoleKey, boolean>;
+  qWhy: string;
+  qHowHelp: string;
+  qPortfolio: string;
+  qExpect: string;
+};
+
+type RoleCardProps = {
+  title: string;
+  description: string;
+  checked: boolean;
+  onToggle: () => void;
+  inputId: string;
+};
+
+function RoleCard({ title, description, checked, onToggle, inputId }: RoleCardProps) {
+  return (
+    <label
+      htmlFor={inputId}
+      className={
+        "block rounded-[var(--radius-lg)] border transition-all cursor-pointer select-none " +
+        (checked
+          ? "border-[var(--color-accent-orange)] bg-[color-mix(in_oklab,var(--color-accent-orange)_12%,transparent)] shadow-sm"
+          : "border-[var(--color-muted-200)] hover:border-[var(--color-accent-orange)]")
+      }
+    >
+      <input id={inputId} type="checkbox" checked={checked} onChange={onToggle} className="sr-only" />
+      <div className="p-4 flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className={
+            "mt-1 inline-flex w-5 h-5 items-center justify-center rounded-md border transition-colors " +
+            (checked
+              ? "bg-[var(--color-accent-orange)] border-[var(--color-accent-orange)] text-white"
+              : "bg-white border-[var(--color-muted-300)] text-transparent")
+          }
+        >
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 10l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <span>
+          <div className="font-medium">{title}</div>
+          <p className="text-sm text-[var(--muted-foreground)]">{description}</p>
+        </span>
+      </div>
+    </label>
+  );
+}
 
 export default function RegisterPage() {
-  // const router = useRouter();
-  const [form, setForm] = useState({
-    email: "",
+  const emptyRoles: Record<RoleKey, boolean> = useMemo(
+    () => ({
+      outreach_sponsor: false,
+      knowledge_knowledge: false,
+      knowledge_learning_design: false,
+      knowledge_sustainability: false,
+      marketing_video_editor: false,
+      marketing_graphic_designer: false,
+      marketing_photographer: false,
+      marketing_content_writer: false,
+      operation_finance: false,
+      operation_hr: false,
+      operation_document: false,
+      event_organizer: false,
+    }),
+    []
+  );
+
+  const [form, setForm] = useState<FormState>({
     fullname: "",
     nickname: "",
     faculty: "",
     major: "",
-    years: "",
-    interests: "",
+    phone: "",
+    email: "",
+    contactOther: "",
+    roles: emptyRoles,
+    qWhy: "",
+    qHowHelp: "",
+    qPortfolio: "",
+    qExpect: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const stepLabels = useMemo(() => ["General Info", "Select Roles", "Open Questions"], []);
+  // Width (in % of container) from center of step 1 to current step position (centers at 1/6, 3/6, 5/6)
+  // Base connector spans 2/3 (≈66.6667%) of container, starting at 1/6 (≈16.6667%) from the left
+  const fillWidthPct = useMemo(() => ((step - 1) / 2) * 66.6667, [step]);
 
-  function update<K extends keyof typeof form>(key: K, value: string) {
+  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function toggleRole(key: RoleKey) {
+    setForm((prev) => ({
+      ...prev,
+      roles: { ...prev.roles, [key]: !prev.roles[key] },
+    }));
   }
 
   function validate() {
     const errors: Record<string, string> = {};
-    if (!form.email) errors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Enter a valid email";
     if (!form.fullname) errors.fullname = "Full name is required";
+    if (!form.nickname) errors.nickname = "Nickname is required";
+    if (!form.faculty) errors.faculty = "Faculty is required";
+    if (!form.major) errors.major = "Major is required";
+    if (!form.phone) errors.phone = "Phone number is required";
+    if (!form.email) errors.email = "E-mail is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Invalid email format";
+    const selectedRoles = Object.values(form.roles).some(Boolean);
+    if (!selectedRoles) errors.roles = "Please select at least one role";
+    if (!form.qWhy) errors.qWhy = "Please tell us why you're interested (required)";
+    if (!form.qHowHelp) errors.qHowHelp = "Please share how you can help the team (required)";
     return errors;
+  }
+
+  function validateStep(s: 1 | 2 | 3) {
+    const errors: Record<string, string> = {};
+    if (s === 1) {
+      if (!form.fullname) errors.fullname = "Full name is required";
+      if (!form.nickname) errors.nickname = "Nickname is required";
+      if (!form.faculty) errors.faculty = "Faculty is required";
+      if (!form.major) errors.major = "Major is required";
+      if (!form.phone) errors.phone = "Phone number is required";
+      if (!form.email) errors.email = "E-mail is required";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Invalid email format";
+    } else if (s === 2) {
+      const selectedRoles = Object.values(form.roles).some(Boolean);
+      if (!selectedRoles) errors.roles = "Please select at least one role";
+    } else if (s === 3) {
+      if (!form.qWhy) errors.qWhy = "Please tell us why you're interested (required)";
+      if (!form.qHowHelp) errors.qHowHelp = "Please share how you can help the team (required)";
+    }
+    return errors;
+  }
+
+  function markTouched(keys: string[]) {
+    setTouched((prev) => {
+      const next: Record<string, boolean> = { ...prev };
+      for (const k of keys) next[k] = true;
+      return next;
+    });
+  }
+
+  function onNext() {
+    const errs = validateStep(step);
+    setFieldErrors(errs);
+    if (step === 1) markTouched(["fullname", "nickname", "faculty", "major", "phone", "email"]);
+    if (step === 2) markTouched(["roles"]);
+    if (Object.keys(errs).length === 0) setStep((s) => (s === 3 ? 3 : ((s + 1) as 2 | 3)));
+  }
+
+  function onBack() {
+    setStep((s) => (s === 1 ? 1 : ((s - 1) as 1 | 2)));
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -40,26 +196,56 @@ export default function RegisterPage() {
 
     const errors = validate();
     setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      // jump to first step that has errors
+      if (errors.fullname || errors.nickname || errors.facultyMajor || errors.phone || errors.email) setStep(1);
+      else if (errors.roles) setStep(2);
+      else setStep(3);
+      return;
+    }
 
     try {
       setSubmitting(true);
+      // NOTE: Backend currently expects older shape. We keep posting only a subset
+      // or the whole form for future compatibility.
       const resp = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          email: form.email,
+          fullname: form.fullname,
+          nickname: form.nickname,
+          faculty: form.faculty,
+          major: form.major,
+          years: "",
+          interests: JSON.stringify({
+            contactOther: form.contactOther,
+            phone: form.phone,
+            roles: form.roles,
+            qWhy: form.qWhy,
+            qHowHelp: form.qHowHelp,
+            qPortfolio: form.qPortfolio,
+            qExpect: form.qExpect,
+          }),
+        }),
       });
-      const json = await resp.json().catch(() => ({}));
+      type RegisterApiResponse = { success?: boolean; error?: string };
+      const json: RegisterApiResponse | null = await resp.json().catch(() => null);
       if (resp.ok && json?.success) {
-        setMessage("Thanks! Your registration has been submitted.");
+        setMessage("Thanks! Your application has been submitted.");
         setForm({
-          email: "",
           fullname: "",
           nickname: "",
           faculty: "",
           major: "",
-          years: "",
-          interests: "",
+          phone: "",
+          email: "",
+          contactOther: "",
+          roles: emptyRoles,
+          qWhy: "",
+          qHowHelp: "",
+          qPortfolio: "",
+          qExpect: "",
         });
         setTouched({});
         setFieldErrors({});
@@ -74,19 +260,166 @@ export default function RegisterPage() {
   }
 
   return (
-
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="container-page max-w-2xl mx-auto px-4 py-10 mb-30">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold">Register</h1>
+          <h1 className="text-3xl font-semibold">Apply to join UCAN Community</h1>
           <p className="text-[var(--muted-foreground)] mt-2">
-            Join the UCAN community. Fill in your details below.
+            Applications open from 5 - 10 October 2025
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="glass-card rounded-[var(--radius-xl)] p-6 md:p-8 space-y-5">
+        {/* Modern stepper progress */}
+        <div className="mb-6 relative">
+          {/* Base connector from center of step 1 to center of step 3 */}
+          <div
+            className="absolute top-5 h-1 bg-[var(--color-muted-200)] rounded-full"
+            style={{ left: "16.6667%", width: "66.6667%" }}
+          />
+          {/* Filled connector up to current step */}
+          <div
+            className="absolute top-5 h-1 rounded-full transition-all shadow-[0_0_0_1px_rgba(0,0,0,0.04)]"
+            style={{
+              left: "16.6667%",
+              width: `${fillWidthPct}%`,
+              backgroundImage: "linear-gradient(90deg, var(--color-accent-orange), var(--color-accent-orange-600))",
+            }}
+            aria-hidden="true"
+          />
+          <ol className="relative z-10 grid grid-cols-3 gap-2">
+            {[1, 2, 3].map((i) => {
+              const active = i <= step;
+              return (
+                <li key={i} className="flex flex-col items-center">
+                  <div
+                    className={
+                      "w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors " +
+                      (active
+                        ? "bg-[var(--color-accent-orange)] text-white ring-4 ring-[color-mix(in_oklab,var(--color-accent-orange)_20%,transparent)]"
+                        : "bg-[var(--color-muted-200)] text-[var(--muted-foreground)]")
+                    }
+                    aria-current={active && step === i ? "step" : undefined}
+                  >
+                    {i === 1 ? <IoIosInformationCircleOutline size={20} /> : i === 2 ? <AiOutlineTeam size={20} /> : <MdOutlineQuestionAnswer size={20} />}
+                  </div>
+                  <span className={"mt-2 text-xs text-center " + (active ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]")}>
+                    {stepLabels[i - 1]}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+
+        <form onSubmit={onSubmit} className="glass-card rounded-[var(--radius-xl)] p-6 md:p-8 space-y-8">
+          {step === 1 ? (
+          <section>
+            <h2 className="text-xl font-semibold mb-3">Section 1: General Information</h2>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium mb-1">Full Name<span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={form.fullname}
+                  onChange={(e) => update("fullname", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, fullname: true }))}
+                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="e.g., Jane Doe"
+                  aria-invalid={Boolean(fieldErrors.fullname) || undefined}
+                  aria-describedby={fieldErrors.fullname ? "fullname-error" : undefined}
+                  required
+                />
+                {touched.fullname && fieldErrors.fullname ? (
+                  <p id="fullname-error" className="mt-1 text-xs text-red-600">{fieldErrors.fullname}</p>
+                ) : null}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Nickname<span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={form.nickname}
+                  onChange={(e) => update("nickname", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, nickname: true }))}
+                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="e.g., Boat"
+                  aria-invalid={Boolean(fieldErrors.nickname) || undefined}
+                  aria-describedby={fieldErrors.nickname ? "nickname-error" : undefined}
+                  required
+                />
+                {touched.nickname && fieldErrors.nickname ? (
+                  <p id="nickname-error" className="mt-1 text-xs text-red-600">{fieldErrors.nickname}</p>
+                ) : null}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Faculty<span className="text-red-500">*</span></label>
+                <select
+                  value={form.faculty}
+                  onChange={(e) => update("faculty", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, faculty: true }))}
+                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  aria-invalid={Boolean(fieldErrors.faculty) || undefined}
+                  aria-describedby={fieldErrors.faculty ? "faculty-error" : undefined}
+                  required
+                >
+                  <option value="">Select faculty</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Science">Science</option>
+                  <option value="Business">Business</option>
+                  <option value="Arts">Arts</option>
+                  <option value="Social Sciences">Social Sciences</option>
+                  <option value="Education">Education</option>
+                  <option value="Medicine">Medicine</option>
+                  <option value="Nursing">Nursing</option>
+                  <option value="Architecture">Architecture</option>
+                  <option value="Law">Law</option>
+                  <option value="Other">Other</option>
+                </select>
+                {touched.faculty && fieldErrors.faculty ? (
+                  <p id="faculty-error" className="mt-1 text-xs text-red-600">{fieldErrors.faculty}</p>
+                ) : null}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Major<span className="text-red-500">*</span></label>
+                <p className="text-sm text-[var(--muted-foreground)] opacity-70 mb-1">Please insert full name of major EX. Computer Engineering</p>
+                <input
+                  type="text"
+                  value={form.major}
+                  onChange={(e) => update("major", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, major: true }))}
+                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="e.g., Computer Engineering"
+                  aria-invalid={Boolean(fieldErrors.major) || undefined}
+                  aria-describedby={fieldErrors.major ? "major-error" : undefined}
+                  required
+                />
+                {touched.major && fieldErrors.major ? (
+                  <p id="major-error" className="mt-1 text-xs text-red-600">{fieldErrors.major}</p>
+                ) : null}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone Number<span className="text-red-500">*</span></label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => update("phone", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="e.g., 08x-xxx-xxxx"
+                  aria-invalid={Boolean(fieldErrors.phone) || undefined}
+                  aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+                  required
+                />
+                {touched.phone && fieldErrors.phone ? (
+                  <p id="phone-error" className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>
+                ) : null}
+              </div>
+
           <div>
-            <label className="block text-sm font-medium mb-1">Email<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">E-mail<span className="text-red-500">*</span></label>
             <input
               type="email"
               value={form.email}
@@ -104,83 +437,208 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Full name<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">Other contact (Line/IG/Facebook)</label>
             <input
               type="text"
-              value={form.fullname}
-              onChange={(e) => update("fullname", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, fullname: true }))}
+                  value={form.contactOther}
+                  onChange={(e) => update("contactOther", e.target.value)}
               className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder="Jane Doe"
-              aria-invalid={Boolean(fieldErrors.fullname) || undefined}
-              aria-describedby={fieldErrors.fullname ? "fullname-error" : undefined}
-              required
+                  placeholder="Add handle or link"
             />
-            {touched.fullname && fieldErrors.fullname ? (
-              <p id="fullname-error" className="mt-1 text-xs text-red-600">{fieldErrors.fullname}</p>
+              </div>
+            </div>
+          </section>
             ) : null}
+
+          {step === 2 ? (
+          <section>
+            <h2 className="text-xl font-semibold mb-3">Section 2: Roles of Interest (you can select more than 1)</h2>
+            <p className="text-sm text-[var(--muted-foreground)] mb-3">Select one or more roles and read each description to understand the responsibilities.</p>
+            <div className="mb-10"></div>
+            <fieldset className="space-y-5">
+              <legend className="sr-only">Roles of interest</legend>
+
+              <div>
+                <div className="font-medium mb-2">Outreach Team</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RoleCard
+                    title="Sponsor"
+                    description="หาผู้สนับสนุนทั้งด้านเงินทุนหรือทรัพยากร และดูแลความสัมพันธ์กับสปอนเซอร์"
+                    checked={form.roles.outreach_sponsor}
+                    onToggle={() => toggleRole("outreach_sponsor")}
+                    inputId="role-outreach-sponsor"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="font-medium mb-2">Knowledge Team</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RoleCard
+                    title="Knowledge"
+                    description="ค้นคว้าและจัดทำเนื้อหาความรู้เพื่อใช้ในกิจกรรมหรือโครงการของ UCAN"
+                    checked={form.roles.knowledge_knowledge}
+                    onToggle={() => toggleRole("knowledge_knowledge")}
+                    inputId="role-knowledge-knowledge"
+                  />
+                  <RoleCard
+                    title="Learning Design"
+                    description="ออกแบบกระบวนการเรียนรู้หรือเวิร์กช็อปให้เหมาะสมกับผู้เข้าร่วม"
+                    checked={form.roles.knowledge_learning_design}
+                    onToggle={() => toggleRole("knowledge_learning_design")}
+                    inputId="role-knowledge-learning-design"
+                  />
+                  <RoleCard
+                    title="Sustainability"
+                    description="พัฒนาแนวทางและกิจกรรมที่ส่งเสริมความยั่งยืนทั้งด้านสิ่งแวดล้อมและสังคม"
+                    checked={form.roles.knowledge_sustainability}
+                    onToggle={() => toggleRole("knowledge_sustainability")}
+                    inputId="role-knowledge-sustainability"
+                  />
+                </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Nickname</label>
-            <input
-              type="text"
-              value={form.nickname}
-              onChange={(e) => update("nickname", e.target.value)}
-              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder="Optional"
-            />
+                <div className="font-medium mb-2">Marketing Team</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RoleCard
+                    title="Video Editor"
+                    description="ตัดต่อวิดีโอโปรโมท กิจกรรม หรือคอนเทนต์ต่าง ๆ"
+                    checked={form.roles.marketing_video_editor}
+                    onToggle={() => toggleRole("marketing_video_editor")}
+                    inputId="role-marketing-video-editor"
+                  />
+                  <RoleCard
+                    title="Graphic Designer"
+                    description="ออกแบบสื่อกราฟิก เช่น โปสเตอร์ อินโฟกราฟิก โลโก้"
+                    checked={form.roles.marketing_graphic_designer}
+                    onToggle={() => toggleRole("marketing_graphic_designer")}
+                    inputId="role-marketing-graphic-designer"
+                  />
+                  <RoleCard
+                    title="Photographer"
+                    description="ถ่ายภาพกิจกรรมและเก็บภาพสำหรับสื่อประชาสัมพันธ์"
+                    checked={form.roles.marketing_photographer}
+                    onToggle={() => toggleRole("marketing_photographer")}
+                    inputId="role-marketing-photographer"
+                  />
+                  <RoleCard
+                    title="Content Writer"
+                    description="เขียนบทความ โพสต์โซเชียล และเนื้อหาประชาสัมพันธ์"
+                    checked={form.roles.marketing_content_writer}
+                    onToggle={() => toggleRole("marketing_content_writer")}
+                    inputId="role-marketing-content-writer"
+                  />
+                </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Faculty</label>
-            <input
-              type="text"
-              value={form.faculty}
-              onChange={(e) => update("faculty", e.target.value)}
-              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder="e.g., Engineering"
-            />
+                <div className="font-medium mb-2">Operation Team</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RoleCard
+                    title="Finance"
+                    description="จัดการเรื่องงบประมาณ การเงิน และบัญชี"
+                    checked={form.roles.operation_finance}
+                    onToggle={() => toggleRole("operation_finance")}
+                    inputId="role-operation-finance"
+                  />
+                  <RoleCard
+                    title="Human Resource (HR)"
+                    description="ดูแลสมาชิกทีม รับสมัคร และสวัสดิการภายใน"
+                    checked={form.roles.operation_hr}
+                    onToggle={() => toggleRole("operation_hr")}
+                    inputId="role-operation-hr"
+                  />
+                  <RoleCard
+                    title="Document"
+                    description="จัดเก็บและดูแลเอกสารสำคัญ เช่น รายงานประชุม ข้อมูลโครงการ"
+                    checked={form.roles.operation_document}
+                    onToggle={() => toggleRole("operation_document")}
+                    inputId="role-operation-document"
+                  />
+                </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Major</label>
-            <input
-              type="text"
-              value={form.major}
-              onChange={(e) => update("major", e.target.value)}
-              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder="e.g., Computer Science"
-            />
+                <div className="font-medium mb-2">Event Organizer</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RoleCard
+                    title="Event Organizer"
+                    description="วางแผนและจัดการกิจกรรม ตั้งแต่การออกแบบงาน กำหนดเวลา ประสานงาน ไปจนถึงการจัดงานจริง"
+                    checked={form.roles.event_organizer}
+                    onToggle={() => toggleRole("event_organizer")}
+                    inputId="role-event-organizer"
+                  />
+                </div>
+              </div>
+
+              {fieldErrors.roles ? (
+                <p className="mt-1 text-xs text-red-600">{fieldErrors.roles}</p>
+              ) : null}
+            </fieldset>
+          </section>
+          ) : null}
+
+          {step === 3 ? (
+          <section>
+            <h2 className="text-xl font-semibold mb-3">Section 3: Open Questions</h2>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium mb-1">Why are you interested in joining UCAN Community?<span className="text-red-500">*</span></label>
+                <textarea
+                  value={form.qWhy}
+                  onChange={(e) => update("qWhy", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, qWhy: true }))}
+                  className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="Share your motivation and expectations"
+                  aria-invalid={Boolean(fieldErrors.qWhy) || undefined}
+                  aria-describedby={fieldErrors.qWhy ? "qWhy-error" : undefined}
+                  required
+                />
+                {touched.qWhy && fieldErrors.qWhy ? (
+                  <p id="qWhy-error" className="mt-1 text-xs text-red-600">{fieldErrors.qWhy}</p>
+                ) : null}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Years</label>
-            <select
-              value={form.years}
-              onChange={(e) => update("years", e.target.value)}
-              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-            >
-              <option value="">Select year</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5+">5+</option>
-              <option value="Graduate">Graduate</option>
-              <option value="Other">Other</option>
-            </select>
+                <label className="block text-sm font-medium mb-1">How do you think you can help the team(s) you selected? (skills/experience)<span className="text-red-500">*</span></label>
+                <textarea
+                  value={form.qHowHelp}
+                  onChange={(e) => update("qHowHelp", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, qHowHelp: true }))}
+                  className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="Describe relevant skills, experience, or work"
+                  aria-invalid={Boolean(fieldErrors.qHowHelp) || undefined}
+                  aria-describedby={fieldErrors.qHowHelp ? "qHowHelp-error" : undefined}
+                  required
+                />
+                {touched.qHowHelp && fieldErrors.qHowHelp ? (
+                  <p id="qHowHelp-error" className="mt-1 text-xs text-red-600">{fieldErrors.qHowHelp}</p>
+                ) : null}
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Interests</label>
+                <label className="block text-sm font-medium mb-1">Do you have any portfolio or experience to share? (you can attach links)</label>
             <textarea
-              value={form.interests}
-              onChange={(e) => update("interests", e.target.value)}
-              className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder="Tell us what you're excited about"
+                  value={form.qPortfolio}
+                  onChange={(e) => update("qPortfolio", e.target.value)}
+                  className="w-full min-h-24 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="Paste portfolio links or share relevant experience"
             />
           </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">What would you like to get from UCAN? (e.g., experience, connections, new skills, etc.)</label>
+                <textarea
+                  value={form.qExpect}
+                  onChange={(e) => update("qExpect", e.target.value)}
+                  className="w-full min-h-24 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  placeholder="Tell us what you expect from joining UCAN"
+                />
+              </div>
+            </div>
+          </section>
+          ) : null}
 
           {error ? (
             <div className="text-sm text-red-600">{error}</div>
@@ -189,15 +647,39 @@ export default function RegisterPage() {
             <div className="text-sm text-green-600">{message}</div>
           ) : null}
 
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="rounded-[999px] px-5 h-11 bg-[var(--color-muted-200)] text-[var(--foreground)] hover:bg-[var(--color-muted-300)]"
+                >
+                  ย้อนกลับ
+                </button>
+              ) : (
+                <Link href="/" className="text-sm hover:underline">Back to home</Link>
+              )}
+            </div>
           <div className="flex items-center gap-3">
+              {step < 3 ? (
+                <button
+                  type="button"
+                  onClick={onNext}
+                  className="rounded-[999px] px-6 h-11 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)]"
+                >
+                  Next
+                </button>
+              ) : (
             <button
               type="submit"
               disabled={submitting}
               className="rounded-[999px] px-6 h-11 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] disabled:opacity-60"
             >
-              {submitting ? "Submitting..." : "Submit"}
+                  {submitting ? "Submitting..." : "Submit application"}
             </button>
-            <Link href="/" className="text-sm hover:underline">Back to home</Link>
+              )}
+            </div>
           </div>
         </form>
       </div>
