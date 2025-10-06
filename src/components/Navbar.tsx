@@ -71,8 +71,13 @@ export default function Navbar() {
             <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.98 }}>
               <Link href="/register" className="mt-2 rounded-[999px] px-4 h-10 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] flex items-center">{messages.nav.joinNow}</Link>
             </motion.div>
+            {/* Mobile language switcher */}
+            <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--color-muted-300)_40%,transparent)] flex justify-end">
+              <LanguageSwitcher />
+            </div>
           </div>
         </details>
+        {/* Mobile language switcher inside menu (visible when menu is open) */}
       </div>
     </header>
   );
