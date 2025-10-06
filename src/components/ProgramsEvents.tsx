@@ -2,10 +2,12 @@
 import Image from "next/image";
 import { toDisplaySrc } from "@/lib/image";
 import { motion } from "motion/react";
+import { useI18n } from "@/lib/i18n/context";
 
 export type ProgramCard = { title: string; date: string; description?: string; image?: string };
 
 export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upcomingPrograms: ProgramCard[]; pastPrograms: ProgramCard[] }) {
+  const { messages } = useI18n();
   return (
     <section id="programs" className="py-16 md:py-20 bg-[var(--muted-100)] dark:bg-[color-mix(in_srgb,var(--color-card-dark)_84%,transparent)]">
       <div className="container-page px-4">
@@ -16,8 +18,8 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Programs & Events</h2>
-            <p className="mt-2 text-[var(--color-muted-700)] dark:text-white/80 max-w-xl">Discover upcoming programs and explore past events.</p>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">{messages.programs.heading}</h2>
+            <p className="mt-2 text-[var(--color-muted-700)] dark:text-white/80 max-w-xl">{messages.programs.subheading}</p>
           </motion.div>
         </div>
 
@@ -48,7 +50,7 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
                       {/* Only upcoming badge */}
                       <div className="absolute top-2 left-2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-600 to-sky-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                          Upcoming
+                          {messages.programs.upcomingBadge}
                           <span className="inline-block h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                         </span>
                       </div>
@@ -68,7 +70,7 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
                         whileTap={{ scale: 0.98 }}
                       >
                         <span className="absolute inset-0 rounded-[999px] bg-gradient-to-r from-fuchsia-600 via-sky-600 to-emerald-600 opacity-90 transition group-hover:opacity-100" />
-                        <span className="relative">Register</span>
+                        <span className="relative">{messages.programs.registerCta}</span>
                       </motion.button>
                     </div>
                   </div>
@@ -80,8 +82,8 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
 
         <div id="events" className="mt-10">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Past Events</h3>
-            <a className="text-sm text-[var(--color-brand)] hover:underline" href="#">View all</a>
+            <h3 className="font-semibold">{messages.programs.pastHeading}</h3>
+            <a className="text-sm text-[var(--color-brand)] hover:underline" href="#">{messages.programs.viewAll}</a>
           </div>
           <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {pastPrograms.map((i, idx) => (

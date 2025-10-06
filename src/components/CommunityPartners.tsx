@@ -1,9 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import { toDisplaySrc } from "@/lib/image";
+import { useI18n } from "@/lib/i18n/context";
 
 export type Partner = { name: string; logo: string };
 
 export default function CommunityPartners({ communityPartners, partners }: { communityPartners: Partner[]; partners: Partner[] }) {
+  const { messages } = useI18n();
   return (
     <section
       id="community"
@@ -14,19 +18,19 @@ export default function CommunityPartners({ communityPartners, partners }: { com
 
       <div className="container-page px-4 relative">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white bg-clip-text text-transparent">
-            Community & Partners
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+            {messages.community.heading}
           </h2>
           <a
             href="#"
             className="text-sm font-medium text-white bg-[var(--color-brand)]/90 hover:bg-[var(--color-brand)] px-3 py-1.5 rounded-md shadow-sm"
           >
-            Become a partner
+            {messages.community.becomePartner}
           </a>
         </div>
         {/* Community partners */}
         <div className="mt-6">
-          <h3 className="text-sm font-semibold tracking-wide text-[var(--color-muted-700)]">Community Partners</h3>
+          <h3 className="text-sm font-semibold tracking-wide text-[var(--color-muted-700)]">{messages.community.communityPartners}</h3>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {communityPartners.map((partner, idx) => (
               <div
@@ -48,7 +52,7 @@ export default function CommunityPartners({ communityPartners, partners }: { com
 
         {/* Corporate partners */}
         <div className="mt-8">
-          <h3 className="text-sm font-semibold tracking-wide text-[var(--color-muted-700)]">Corporate Partners</h3>
+          <h3 className="text-sm font-semibold tracking-wide text-[var(--color-muted-700)]">{messages.community.corporatePartners}</h3>
           <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {partners.map((partner, idx) => (
               <div

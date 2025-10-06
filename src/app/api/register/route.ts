@@ -1,31 +1,48 @@
 export async function POST(request: Request) {
   try {
     const contentType = request.headers.get("content-type") ?? "";
-    let payload: Record<string, unknown> = {};
+    type Payload = Record<string, unknown>;
+    let payload: Payload = {};
     if (contentType.includes("application/json")) {
-      payload = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+      payload = (await request.json().catch(() => ({}))) as Payload;
     } else {
       const url = new URL(request.url);
       payload = Object.fromEntries(url.searchParams.entries());
     }
 
+    function firstOf(obj: Payload, keys: string[]): unknown {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          return obj[key];
+        }
+      }
+      return undefined;
+    }
+
+    function asString(value: unknown): string {
+      if (value === undefined || value === null) return "";
+      if (Array.isArray(value)) return value.map((v) => String(v)).join(",");
+      return String(value);
+    }
+
     // Normalize payload fields
-    const fullname = String(payload.fullname ?? "");
-    const nickname = String(payload.nickname ?? "");
-    const faculty = String(payload.faculty ?? "");
-    const major = String(payload.major ?? "");
-    const phone = String(payload.phone ?? (payload as any).phoneNumber ?? "");
-    const email = String(payload.email ?? "");
-    const contactOther = String(payload.contactOther ?? (payload as any).OtherContact ?? "");
+    const fullname = asString(firstOf(payload, ["fullname"]));
+    const nickname = asString(firstOf(payload, ["nickname"]));
+    const faculty = asString(firstOf(payload, ["faculty"]));
+    const major = asString(firstOf(payload, ["major"]));
+    const phone = asString(firstOf(payload, ["phone", "phoneNumber"]));
+    const email = asString(firstOf(payload, ["email"]));
+    const contactOther = asString(firstOf(payload, ["contactOther", "OtherContact"]));
 
-    const rolesCsv = Array.isArray((payload as any).roles)
-      ? ((payload as any).roles as string[]).join(",")
-      : String((payload as any).roles ?? "");
+    const rolesValue = firstOf(payload, ["roles"]);
+    const rolesCsv = Array.isArray(rolesValue)
+      ? rolesValue.map((v) => String(v)).join(",")
+      : asString(rolesValue);
 
-    const qWhy = String((payload as any).qWhy ?? (payload as any).WhyInterest ?? "");
-    const qHowHelp = String((payload as any).qHowHelp ?? (payload as any).HelpTeam ?? "");
-    const qPortfolio = String((payload as any).qPortfolio ?? (payload as any).Portfolio ?? "");
-    const qExpect = String((payload as any).qExpect ?? (payload as any).WhatYouWant ?? "");
+    const qWhy = asString(firstOf(payload, ["qWhy", "WhyInterest"]));
+    const qHowHelp = asString(firstOf(payload, ["qHowHelp", "HelpTeam"]));
+    const qPortfolio = asString(firstOf(payload, ["qPortfolio", "Portfolio"]));
+    const qExpect = asString(firstOf(payload, ["qExpect", "WhatYouWant"]));
 
     if (!fullname || !email) {
       return new Response(JSON.stringify({ error: "Missing required fields: fullname, email" }), {

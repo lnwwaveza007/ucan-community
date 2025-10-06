@@ -6,6 +6,8 @@ import { IoIosInformationCircleOutline } from "react-icons/io";
 import { AiOutlineTeam } from "react-icons/ai";
 import { MdOutlineQuestionAnswer } from "react-icons/md";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n/context";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type RoleKey =
   | "outreach_sponsor"
@@ -158,6 +160,7 @@ function RoleCard({ title, description, checked, onToggle, inputId }: RoleCardPr
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { messages } = useI18n();
   const emptyRoles: Record<RoleKey, boolean> = useMemo(
     () => ({
       outreach_sponsor: false,
@@ -198,7 +201,7 @@ export default function RegisterPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const stepLabels = useMemo(() => ["General Info", "Select Roles", "Open Questions"], []);
+  const stepLabels = useMemo(() => [messages.register.steps.s1, messages.register.steps.s2, messages.register.steps.s3], [messages.register.steps]);
   // Width (in % of container) from center of step 1 to current step position (centers at 1/6, 3/6, 5/6)
   // Base connector spans 2/3 (≈66.6667%) of container, starting at 1/6 (≈16.6667%) from the left
   const fillWidthPct = useMemo(() => ((step - 1) / 2) * 66.6667, [step]);
@@ -216,40 +219,40 @@ export default function RegisterPage() {
 
   function validate() {
     const errors: Record<string, string> = {};
-    if (!form.fullname) errors.fullname = "Full name is required";
-    if (!form.nickname) errors.nickname = "Nickname is required";
+    if (!form.fullname) errors.fullname = messages.register.errors.fullname;
+    if (!form.nickname) errors.nickname = messages.register.errors.nickname;
     const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
     const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
-    if (!facultyFinal) errors.faculty = "Faculty is required";
-    if (!majorFinal) errors.major = "Major is required";
-    if (!form.phone) errors.phone = "Phone number is required";
-    if (!form.email) errors.email = "E-mail is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Invalid email format";
+    if (!facultyFinal) errors.faculty = messages.register.errors.faculty;
+    if (!majorFinal) errors.major = messages.register.errors.major;
+    if (!form.phone) errors.phone = messages.register.errors.phone;
+    if (!form.email) errors.email = messages.register.errors.email;
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = messages.register.errors.emailInvalid;
     const selectedRoles = Object.values(form.roles).some(Boolean);
-    if (!selectedRoles) errors.roles = "Please select at least one role";
-    if (!form.qWhy) errors.qWhy = "Please tell us why you're interested (required)";
-    if (!form.qHowHelp) errors.qHowHelp = "Please share how you can help the team (required)";
+    if (!selectedRoles) errors.roles = messages.register.errors.roles;
+    if (!form.qWhy) errors.qWhy = messages.register.errors.qWhy;
+    if (!form.qHowHelp) errors.qHowHelp = messages.register.errors.qHowHelp;
     return errors;
   }
 
   function validateStep(s: 1 | 2 | 3) {
     const errors: Record<string, string> = {};
     if (s === 1) {
-      if (!form.fullname) errors.fullname = "Full name is required";
-      if (!form.nickname) errors.nickname = "Nickname is required";
+      if (!form.fullname) errors.fullname = messages.register.errors.fullname;
+      if (!form.nickname) errors.nickname = messages.register.errors.nickname;
       const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
       const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
-      if (!facultyFinal) errors.faculty = "Faculty is required";
-      if (!majorFinal) errors.major = "Major is required";
-      if (!form.phone) errors.phone = "Phone number is required";
-      if (!form.email) errors.email = "E-mail is required";
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Invalid email format";
+      if (!facultyFinal) errors.faculty = messages.register.errors.faculty;
+      if (!majorFinal) errors.major = messages.register.errors.major;
+      if (!form.phone) errors.phone = messages.register.errors.phone;
+      if (!form.email) errors.email = messages.register.errors.email;
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = messages.register.errors.emailInvalid;
     } else if (s === 2) {
       const selectedRoles = Object.values(form.roles).some(Boolean);
-      if (!selectedRoles) errors.roles = "Please select at least one role";
+      if (!selectedRoles) errors.roles = messages.register.errors.roles;
     } else if (s === 3) {
-      if (!form.qWhy) errors.qWhy = "Please tell us why you're interested (required)";
-      if (!form.qHowHelp) errors.qHowHelp = "Please share how you can help the team (required)";
+      if (!form.qWhy) errors.qWhy = messages.register.errors.qWhy;
+      if (!form.qHowHelp) errors.qHowHelp = messages.register.errors.qHowHelp;
     }
     return errors;
   }
@@ -333,23 +336,24 @@ export default function RegisterPage() {
         }),
       });
       if (!res.ok) {
-        throw new Error("Failed to submit form");
+        throw new Error(messages.register.errors.submitFailed);
       }
       router.push("/register/success");
     } catch {
       setSubmitting(false);
-      setError("Failed to redirect. Please try again.");
+      setError(messages.register.errors.redirectFailed);
     }
   }
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <div className="container-page px-4 py-3 flex items-center justify-end">
+        <LanguageSwitcher />
+      </div>
       <div className="container-page max-w-2xl mx-auto px-4 py-10 mb-30">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold">Apply to join UCAN Community</h1>
-          <p className="text-[var(--muted-foreground)] mt-2">
-            Applications open from 7 - 11 October 2025
-          </p>
+          <h1 className="text-3xl font-semibold">{messages.register.title}</h1>
+          <p className="text-[var(--muted-foreground)] mt-2">{messages.register.subtitle}</p>
         </div>
 
         {/* Modern stepper progress */}
@@ -397,17 +401,17 @@ export default function RegisterPage() {
         <form onSubmit={onSubmit} className="glass-card rounded-[var(--radius-xl)] p-6 md:p-8 space-y-8">
           {step === 1 ? (
           <section>
-            <h2 className="text-xl font-semibold mb-3">Section 1: General Information</h2>
+            <h2 className="text-xl font-semibold mb-3">{messages.register.section1Title}</h2>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1">Full Name<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.fullname}<span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={form.fullname}
                   onChange={(e) => update("fullname", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, fullname: true }))}
                   className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="e.g., Jane Doe"
+                  placeholder={messages.register.placeholders.fullname}
                   aria-invalid={Boolean(fieldErrors.fullname) || undefined}
                   aria-describedby={fieldErrors.fullname ? "fullname-error" : undefined}
                   required
@@ -418,14 +422,14 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Nickname<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.nickname}<span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={form.nickname}
                   onChange={(e) => update("nickname", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, nickname: true }))}
                   className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="e.g., Boat"
+                  placeholder={messages.register.placeholders.nickname}
                   aria-invalid={Boolean(fieldErrors.nickname) || undefined}
                   aria-describedby={fieldErrors.nickname ? "nickname-error" : undefined}
                   required
@@ -436,7 +440,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Faculty<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.faculty}<span className="text-red-500">*</span></label>
                 <select
                   value={form.faculty}
                   onChange={(e) => {
@@ -451,18 +455,18 @@ export default function RegisterPage() {
                   aria-describedby={fieldErrors.faculty ? "faculty-error" : undefined}
                   required
                 >
-                  <option value="">Select faculty</option>
+                  <option value="">{messages.register.selectFaculty}</option>
                   {Object.keys(FACULTY_TO_MAJORS).map((f) => (
                     <option key={f} value={f}>{f}</option>
                   ))}
-                  <option value={OTHER_VALUE}>Other</option>
+                  <option value={OTHER_VALUE}>{messages.register.other}</option>
                 </select>
                 {form.faculty === OTHER_VALUE ? (
                   <input
                     type="text"
                     value={customFaculty}
                     onChange={(e) => setCustomFaculty(e.target.value)}
-                    placeholder="Enter your faculty"
+                    placeholder={messages.register.placeholders.enterFaculty}
                     className="mt-2 w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
                   />
                 ) : null}
@@ -472,8 +476,8 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Major<span className="text-red-500">*</span></label>
-                <p className="text-sm text-[var(--muted-foreground)] opacity-70 mb-1">Select from list or choose Other to type your major</p>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.major}<span className="text-red-500">*</span></label>
+                <p className="text-sm text-[var(--muted-foreground)] opacity-70 mb-1">{messages.register.selectMajorHint}</p>
                 <select
                   value={form.major}
                   onChange={(e) => update("major", e.target.value)}
@@ -483,18 +487,18 @@ export default function RegisterPage() {
                   aria-describedby={fieldErrors.major ? "major-error" : undefined}
                   required
                 >
-                  <option value="">Select major</option>
+                  <option value="">{messages.register.selectMajor}</option>
                   {(form.faculty && form.faculty !== OTHER_VALUE ? FACULTY_TO_MAJORS[form.faculty] : []).map((m) => (
                     <option key={m} value={m}>{m}</option>
                   ))}
-                  <option value={OTHER_VALUE}>Other</option>
+                  <option value={OTHER_VALUE}>{messages.register.other}</option>
                 </select>
                 {form.major === OTHER_VALUE ? (
                   <input
                     type="text"
                     value={customMajor}
                     onChange={(e) => setCustomMajor(e.target.value)}
-                    placeholder="Enter your major"
+                    placeholder={messages.register.placeholders.enterMajor}
                     className="mt-2 w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
                   />
                 ) : null}
@@ -504,14 +508,14 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Phone Number<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.phone}<span className="text-red-500">*</span></label>
                 <input
                   type="tel"
                   value={form.phone}
                   onChange={(e) => update("phone", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
                   className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="e.g., 08x-xxx-xxxx"
+                  placeholder={messages.register.placeholders.phone}
                   aria-invalid={Boolean(fieldErrors.phone) || undefined}
                   aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
                   required
@@ -522,14 +526,14 @@ export default function RegisterPage() {
               </div>
 
           <div>
-                <label className="block text-sm font-medium mb-1">E-mail<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.email}<span className="text-red-500">*</span></label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => update("email", e.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, email: true }))}
               className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder="you@example.com"
+              placeholder={messages.register.placeholders.email}
               aria-invalid={Boolean(fieldErrors.email) || undefined}
               aria-describedby={fieldErrors.email ? "email-error" : undefined}
               required
@@ -540,13 +544,13 @@ export default function RegisterPage() {
           </div>
 
           <div>
-                <label className="block text-sm font-medium mb-1">Other contact (Line/IG/Facebook)</label>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.otherContact}</label>
             <input
               type="text"
                   value={form.contactOther}
                   onChange={(e) => update("contactOther", e.target.value)}
               className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="Add handle or link"
+                  placeholder={messages.register.placeholders.otherContact}
             />
               </div>
             </div>
@@ -555,18 +559,18 @@ export default function RegisterPage() {
 
           {step === 2 ? (
           <section>
-            <h2 className="text-xl font-semibold mb-3">Section 2: Roles of Interest (you can select more than 1)</h2>
-            <p className="text-sm text-[var(--muted-foreground)] mb-3">Select one or more roles and read each description to understand the responsibilities.</p>
+            <h2 className="text-xl font-semibold mb-3">{messages.register.section2Title}</h2>
+            <p className="text-sm text-[var(--muted-foreground)] mb-3">{messages.register.section2Intro}</p>
             <div className="mb-10"></div>
             <fieldset className="space-y-5">
-              <legend className="sr-only">Roles of interest</legend>
+              <legend className="sr-only">{messages.register.section2Legend}</legend>
 
               <div>
-                <div className="font-medium mb-2">Outreach Team</div>
+                <div className="font-medium mb-2">{messages.register.teams.outreach}</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <RoleCard
-                    title="Sponsor"
-                    description="หาผู้สนับสนุนทั้งด้านเงินทุนหรือทรัพยากร และดูแลความสัมพันธ์กับสปอนเซอร์"
+                    title={messages.register.roleCards.outreach_sponsor.title}
+                    description={messages.register.roleCards.outreach_sponsor.description}
                     checked={form.roles.outreach_sponsor}
                     onToggle={() => toggleRole("outreach_sponsor")}
                     inputId="role-outreach-sponsor"
@@ -575,18 +579,18 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <div className="font-medium mb-2">Knowledge Team</div>
+                <div className="font-medium mb-2">{messages.register.teams.knowledge}</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <RoleCard
-                    title="Knowledge"
-                    description="ค้นคว้าและจัดทำเนื้อหาความรู้เพื่อใช้ในกิจกรรมหรือโครงการของ UCAN"
+                    title={messages.register.roleCards.knowledge_knowledge.title}
+                    description={messages.register.roleCards.knowledge_knowledge.description}
                     checked={form.roles.knowledge_knowledge}
                     onToggle={() => toggleRole("knowledge_knowledge")}
                     inputId="role-knowledge-knowledge"
                   />
                   <RoleCard
-                    title="Learning Design"
-                    description="ออกแบบกระบวนการเรียนรู้หรือเวิร์กช็อปให้เหมาะสมกับผู้เข้าร่วม"
+                    title={messages.register.roleCards.knowledge_learning_design.title}
+                    description={messages.register.roleCards.knowledge_learning_design.description}
                     checked={form.roles.knowledge_learning_design}
                     onToggle={() => toggleRole("knowledge_learning_design")}
                     inputId="role-knowledge-learning-design"
@@ -596,32 +600,32 @@ export default function RegisterPage() {
           </div>
 
           <div>
-                <div className="font-medium mb-2">Marketing Team</div>
+                <div className="font-medium mb-2">{messages.register.teams.marketing}</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <RoleCard
-                    title="Video Editor"
-                    description="ตัดต่อวิดีโอโปรโมท กิจกรรม หรือคอนเทนต์ต่าง ๆ"
+                    title={messages.register.roleCards.marketing_video_editor.title}
+                    description={messages.register.roleCards.marketing_video_editor.description}
                     checked={form.roles.marketing_video_editor}
                     onToggle={() => toggleRole("marketing_video_editor")}
                     inputId="role-marketing-video-editor"
                   />
                   <RoleCard
-                    title="Graphic Designer"
-                    description="ออกแบบสื่อกราฟิก เช่น โปสเตอร์ อินโฟกราฟิก โลโก้"
+                    title={messages.register.roleCards.marketing_graphic_designer.title}
+                    description={messages.register.roleCards.marketing_graphic_designer.description}
                     checked={form.roles.marketing_graphic_designer}
                     onToggle={() => toggleRole("marketing_graphic_designer")}
                     inputId="role-marketing-graphic-designer"
                   />
                   <RoleCard
-                    title="Photographer"
-                    description="ถ่ายภาพกิจกรรมและเก็บภาพสำหรับสื่อประชาสัมพันธ์"
+                    title={messages.register.roleCards.marketing_photographer.title}
+                    description={messages.register.roleCards.marketing_photographer.description}
                     checked={form.roles.marketing_photographer}
                     onToggle={() => toggleRole("marketing_photographer")}
                     inputId="role-marketing-photographer"
                   />
                   <RoleCard
-                    title="Content Writer"
-                    description="เขียนบทความ โพสต์โซเชียล และเนื้อหาประชาสัมพันธ์"
+                    title={messages.register.roleCards.marketing_content_writer.title}
+                    description={messages.register.roleCards.marketing_content_writer.description}
                     checked={form.roles.marketing_content_writer}
                     onToggle={() => toggleRole("marketing_content_writer")}
                     inputId="role-marketing-content-writer"
@@ -630,32 +634,32 @@ export default function RegisterPage() {
           </div>
 
           <div>
-                <div className="font-medium mb-2">Operation Team</div>
+                <div className="font-medium mb-2">{messages.register.teams.operation}</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                    <RoleCard
-                    title="Sustainability"
-                    description="พัฒนาแนวทางและกิจกรรมที่ส่งเสริมความยั่งยืนทั้งด้านสิ่งแวดล้อมและสังคม"
+                    title={messages.register.roleCards.operation_sustainability.title}
+                    description={messages.register.roleCards.operation_sustainability.description}
                     checked={form.roles.operation_sustainability}
                     onToggle={() => toggleRole("operation_sustainability")}
                     inputId="role-operation-sustainability"
                   />
                   <RoleCard
-                    title="Finance"
-                    description="จัดการเรื่องงบประมาณ การเงิน และบัญชี"
+                    title={messages.register.roleCards.operation_finance.title}
+                    description={messages.register.roleCards.operation_finance.description}
                     checked={form.roles.operation_finance}
                     onToggle={() => toggleRole("operation_finance")}
                     inputId="role-operation-finance"
                   />
                   <RoleCard
-                    title="Human Resource (HR)"
-                    description="ดูแลสมาชิกทีม รับสมัคร และสวัสดิการภายใน"
+                    title={messages.register.roleCards.operation_hr.title}
+                    description={messages.register.roleCards.operation_hr.description}
                     checked={form.roles.operation_hr}
                     onToggle={() => toggleRole("operation_hr")}
                     inputId="role-operation-hr"
                   />
                   <RoleCard
-                    title="Document"
-                    description="จัดเก็บและดูแลเอกสารสำคัญ เช่น รายงานประชุม ข้อมูลโครงการ"
+                    title={messages.register.roleCards.operation_document.title}
+                    description={messages.register.roleCards.operation_document.description}
                     checked={form.roles.operation_document}
                     onToggle={() => toggleRole("operation_document")}
                     inputId="role-operation-document"
@@ -664,11 +668,11 @@ export default function RegisterPage() {
           </div>
 
           <div>
-                <div className="font-medium mb-2">Event Organizer</div>
+                <div className="font-medium mb-2">{messages.register.teams.event}</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <RoleCard
-                    title="Event Organizer"
-                    description="วางแผนและจัดการกิจกรรม ตั้งแต่การออกแบบงาน กำหนดเวลา ประสานงาน ไปจนถึงการจัดงานจริง"
+                    title={messages.register.roleCards.event_organizer.title}
+                    description={messages.register.roleCards.event_organizer.description}
                     checked={form.roles.event_organizer}
                     onToggle={() => toggleRole("event_organizer")}
                     inputId="role-event-organizer"
@@ -685,16 +689,16 @@ export default function RegisterPage() {
 
           {step === 3 ? (
           <section>
-            <h2 className="text-xl font-semibold mb-3">Section 3: Open Questions</h2>
+            <h2 className="text-xl font-semibold mb-3">{messages.register.section3Title}</h2>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1">Why are you interested in joining UCAN Community?<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.qWhyLabel}<span className="text-red-500">*</span></label>
                 <textarea
                   value={form.qWhy}
                   onChange={(e) => update("qWhy", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, qWhy: true }))}
                   className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="Share your motivation and expectations"
+                  placeholder={messages.register.placeholders.qWhy}
                   aria-invalid={Boolean(fieldErrors.qWhy) || undefined}
                   aria-describedby={fieldErrors.qWhy ? "qWhy-error" : undefined}
                   required
@@ -705,13 +709,13 @@ export default function RegisterPage() {
           </div>
 
           <div>
-                <label className="block text-sm font-medium mb-1">How do you think you can help the team(s) you selected? (skills/experience)<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">{messages.register.qHowHelpLabel}<span className="text-red-500">*</span></label>
                 <textarea
                   value={form.qHowHelp}
                   onChange={(e) => update("qHowHelp", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, qHowHelp: true }))}
                   className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="Describe relevant skills, experience, or work"
+                  placeholder={messages.register.placeholders.qHowHelp}
                   aria-invalid={Boolean(fieldErrors.qHowHelp) || undefined}
                   aria-describedby={fieldErrors.qHowHelp ? "qHowHelp-error" : undefined}
                   required
@@ -722,22 +726,22 @@ export default function RegisterPage() {
           </div>
 
           <div>
-                <label className="block text-sm font-medium mb-1">Do you have any portfolio or experience to share? (you can attach links)</label>
+                <label className="block text-sm font-medium mb-1">{messages.register.qPortfolioLabel}</label>
             <textarea
                   value={form.qPortfolio}
                   onChange={(e) => update("qPortfolio", e.target.value)}
                   className="w-full min-h-24 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="Paste portfolio links or share relevant experience"
+                  placeholder={messages.register.placeholders.qPortfolio}
             />
           </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">What would you like to get from UCAN? (e.g., experience, connections, new skills, etc.)</label>
+                <label className="block text-sm font-medium mb-1">{messages.register.qExpectLabel}</label>
                 <textarea
                   value={form.qExpect}
                   onChange={(e) => update("qExpect", e.target.value)}
                   className="w-full min-h-24 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="Tell us what you expect from joining UCAN"
+                  placeholder={messages.register.placeholders.qExpect}
                 />
               </div>
             </div>
@@ -759,10 +763,10 @@ export default function RegisterPage() {
                   onClick={onBack}
                   className="rounded-[999px] px-5 h-11 bg-[var(--color-muted-200)] text-[var(--foreground)] hover:bg-[var(--color-muted-300)]"
                 >
-                  ย้อนกลับ
+                  {messages.register.buttons.back}
                 </button>
               ) : (
-                <Link href="/" className="text-sm hover:underline">Back to home</Link>
+                <Link href="/" className="text-sm hover:underline">{messages.register.buttons.backToHome}</Link>
               )}
             </div>
           <div className="flex items-center gap-3">
@@ -772,7 +776,7 @@ export default function RegisterPage() {
                   onClick={onNext}
                   className="rounded-[999px] px-6 h-11 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)]"
                 >
-                  Next
+                  {messages.register.buttons.next}
                 </button>
               ) : (
             <button
@@ -780,7 +784,7 @@ export default function RegisterPage() {
               disabled={submitting}
               className="rounded-[999px] px-6 h-11 bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] disabled:opacity-60"
             >
-                  {submitting ? "Submitting..." : "Submit application"}
+                  {submitting ? messages.register.buttons.submitting : messages.register.buttons.submit}
             </button>
               )}
             </div>

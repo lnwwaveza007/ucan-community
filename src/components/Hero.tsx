@@ -5,8 +5,10 @@ import bgImage from "@/images/landing-page/background.png";
 import Slideshow from "@/components/Slideshow";
 export type Slide = { src: string; alt?: string };
 import { toDisplaySrc } from "@/lib/image";
+import { useI18n } from "@/lib/i18n/context";
 
 export default function Hero({ slides }: { slides: Slide[] }) {
+  const { messages } = useI18n();
   return (
     <section className="relative text-white">
       {/* Background image */}
@@ -30,7 +32,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
             viewport={{ once: true, amount: 0.4 }}
             transition={{ type: "spring", stiffness: 120, damping: 18 }}
           >
-            <p className="inline-block text-xs uppercase tracking-[0.2em] text-white/70 mb-4">University Community for Entrepreneurs</p>
+            <p className="inline-block text-xs uppercase tracking-[0.2em] text-white/70 mb-4">{messages.hero.eyebrow}</p>
             <motion.h1
               className="text-4xl md:text-6xl font-extrabold leading-[1.05]"
               initial={{ opacity: 0, y: 16 }}
@@ -38,7 +40,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
               viewport={{ once: true }}
               transition={{ delay: 0.05, duration: 0.5, ease: "easeOut" }}
             >
-              You can. <br/><span className="text-[var(--accent-pink)]">We all can.</span>
+              {messages.hero.headingLine1} <br/><span className="text-[var(--accent-pink)]">{messages.hero.headingLine2}</span>
             </motion.h1>
             <motion.p
               className="mt-5 text-white/80 text-lg max-w-xl"
@@ -47,7 +49,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
               viewport={{ once: true }}
               transition={{ delay: 0.15, duration: 0.5, ease: "easeOut" }}
             >
-              UCAN&apos;s Innovation &amp; Entrepreneurship Center connects students, alumni, and mentors to launch ideas through hands-on programs, events, and resources.
+              {messages.hero.description}
             </motion.p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <motion.button
@@ -56,7 +58,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                Join the Community
+                {messages.hero.ctaPrimary}
               </motion.button>
               <motion.a
                 href="#programs"
@@ -65,7 +67,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                Explore Programs
+                {messages.hero.ctaSecondary}
               </motion.a>
             </div>
             {/* Stats moved to About section */}
