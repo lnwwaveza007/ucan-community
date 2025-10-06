@@ -6,9 +6,11 @@ import Slideshow from "@/components/Slideshow";
 export type Slide = { src: string; alt?: string };
 import { toDisplaySrc } from "@/lib/image";
 import { useI18n } from "@/lib/i18n/context";
+import { useRouter } from "next/navigation";
 
 export default function Hero({ slides }: { slides: Slide[] }) {
   const { messages } = useI18n();
+  const router = useRouter();
   return (
     <section className="relative text-white">
       {/* Background image */}
@@ -57,6 +59,7 @@ export default function Hero({ slides }: { slides: Slide[] }) {
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                onClick={() => router.push("/register")}
               >
                 {messages.hero.ctaPrimary}
               </motion.button>

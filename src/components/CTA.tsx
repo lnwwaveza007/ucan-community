@@ -1,8 +1,10 @@
 "use client";
 import { useI18n } from "@/lib/i18n/context";
+import { useRouter } from "next/navigation";
 
 export default function CTA() {
   const { messages } = useI18n();
+  const router = useRouter();
   return (
     <section className="py-16 md:py-20" >
       <div className="container-page px-4 ">
@@ -11,7 +13,7 @@ export default function CTA() {
             <h3 className="text-2xl md:text-3xl font-bold">{messages.cta.heading}</h3>
             <p className="text-white/80 mt-2">{messages.cta.description}</p>
           </div>
-          <button className="rounded-[999px] px-6 h-12 bg-white text-[var(--brand-blue-800)] font-semibold hover:bg-white/90">{messages.cta.primary}</button>
+          <button className="rounded-[999px] px-6 h-12 bg-white text-[var(--brand-blue-800)] font-semibold hover:bg-white/90" onClick={() => router.push("/register")}>{messages.cta.primary}</button>
         </div>
       </div>
     </section>
