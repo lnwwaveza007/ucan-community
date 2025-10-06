@@ -36,6 +36,68 @@ const ROLE_LABELS: Record<RoleKey, string> = {
   event_organizer: "Event Organizer",
 };
 
+// Faculties and majors (departments/programs) for KMUTT. Users can still choose "Other".
+const OTHER_VALUE = "__OTHER__";
+
+const FACULTY_TO_MAJORS: Record<string, string[]> = {
+  "Faculty of Engineering": [
+    "Department of Electrical Engineering",
+    "Department of Computer Engineering",
+    "Department of Electronic and Telecommunication Engineering",
+    "Department of Control System and Instrumentation Engineering",
+    "Department of Mechanical Engineering",
+    "Department of Civil Engineering",
+    "Department of Environmental Engineering",
+    "Department of Production Engineering",
+    "Department of Tool and Material Engineering",
+    "Department of Chemical Engineering",
+    "Department of Food Engineering",
+  ],
+  "Faculty of Industrial Education and Technology": [
+    "Department of Civil Technology Education",
+    "Department of Electrical Technology Education",
+    "Mechanical Technology Education",
+    "Department of Production Technology Education",
+    "Educational Communication and Technology Department",
+    "Division of Computer and Information Technology",
+    "Department of Printing and Packaging Technology",
+  ],
+  "School of Energy, Environment and Materials": [
+    "Energy Technology",
+    "Energy Management Technology",
+    "Materials Technology / Integrated Product Design and Manufacturing",
+    "Environmental Technology",
+    "Thermal Technology",
+    "Polymer Processing and Flow Research Group (P-PROF)",
+    "EnConLab (Energy Conservation Laboratory)",
+  ],
+  "Faculty of Science": [
+    "Department of Mathematics",
+    "Department of Microbiology",
+    "Department of Chemistry",
+    "Department of Physics",
+    "Scientific Instrument Center for Standard and Industry",
+    "Science Integrated Center",
+  ],
+  "School of Liberal Arts": [
+    "Office of General Education (GenEd)",
+  ],
+  "School of Information Technology": [
+    "Information Technology",
+    "Computer Science (English Program)",
+    "Digital Service Innovation",
+  ],
+  "School of Bioresources and Technology": [
+    "Biotechnology",
+    "Postharvest Technology",
+  ],
+  "School of Architecture and Design": [
+    "Media Arts and Technology",
+  ],
+  "Graduate School of Management and Innovation": [],
+  "Institute of Field Robotics (FIBO)": [],
+};
+
 type FormState = {
   fullname: string;
   nickname: string;
@@ -128,6 +190,8 @@ export default function RegisterPage() {
     qPortfolio: "",
     qExpect: "",
   });
+  const [customFaculty, setCustomFaculty] = useState<string>("");
+  const [customMajor, setCustomMajor] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -154,8 +218,10 @@ export default function RegisterPage() {
     const errors: Record<string, string> = {};
     if (!form.fullname) errors.fullname = "Full name is required";
     if (!form.nickname) errors.nickname = "Nickname is required";
-    if (!form.faculty) errors.faculty = "Faculty is required";
-    if (!form.major) errors.major = "Major is required";
+    const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
+    const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
+    if (!facultyFinal) errors.faculty = "Faculty is required";
+    if (!majorFinal) errors.major = "Major is required";
     if (!form.phone) errors.phone = "Phone number is required";
     if (!form.email) errors.email = "E-mail is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Invalid email format";
@@ -171,8 +237,10 @@ export default function RegisterPage() {
     if (s === 1) {
       if (!form.fullname) errors.fullname = "Full name is required";
       if (!form.nickname) errors.nickname = "Nickname is required";
-      if (!form.faculty) errors.faculty = "Faculty is required";
-      if (!form.major) errors.major = "Major is required";
+      const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
+      const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
+      if (!facultyFinal) errors.faculty = "Faculty is required";
+      if (!majorFinal) errors.major = "Major is required";
       if (!form.phone) errors.phone = "Phone number is required";
       if (!form.email) errors.email = "E-mail is required";
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "Invalid email format";
@@ -224,11 +292,14 @@ export default function RegisterPage() {
     try {
       setSubmitting(true);
 
+      const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
+      const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
+
       const params = new URLSearchParams();
       params.set("fullname", String(form.fullname ?? ""));
       params.set("nickname", String(form.nickname ?? ""));
-      params.set("faculty", String(form.faculty ?? ""));
-      params.set("major", String(form.major ?? ""));
+      params.set("faculty", String(facultyFinal ?? ""));
+      params.set("major", String(majorFinal ?? ""));
       params.set("phone", String(form.phone ?? ""));
       params.set("email", String(form.email ?? ""));
       params.set("contactOther", String(form.contactOther ?? ""));
@@ -249,8 +320,8 @@ export default function RegisterPage() {
         body: JSON.stringify({
           fullname: form.fullname,
           nickname: form.nickname,
-          faculty: form.faculty,
-          major: form.major,
+          faculty: facultyFinal,
+          major: majorFinal,
           phone: form.phone,
           email: form.email,
           contactOther: form.contactOther,
@@ -368,7 +439,12 @@ export default function RegisterPage() {
                 <label className="block text-sm font-medium mb-1">Faculty<span className="text-red-500">*</span></label>
                 <select
                   value={form.faculty}
-                  onChange={(e) => update("faculty", e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    update("faculty", value);
+                    // Reset major when faculty changes
+                    update("major", "");
+                  }}
                   onBlur={() => setTouched((t) => ({ ...t, faculty: true }))}
                   className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
                   aria-invalid={Boolean(fieldErrors.faculty) || undefined}
@@ -376,18 +452,20 @@ export default function RegisterPage() {
                   required
                 >
                   <option value="">Select faculty</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Science">Science</option>
-                  <option value="Business">Business</option>
-                  <option value="Arts">Arts</option>
-                  <option value="Social Sciences">Social Sciences</option>
-                  <option value="Education">Education</option>
-                  <option value="Medicine">Medicine</option>
-                  <option value="Nursing">Nursing</option>
-                  <option value="Architecture">Architecture</option>
-                  <option value="Law">Law</option>
-                  <option value="Other">Other</option>
+                  {Object.keys(FACULTY_TO_MAJORS).map((f) => (
+                    <option key={f} value={f}>{f}</option>
+                  ))}
+                  <option value={OTHER_VALUE}>Other</option>
                 </select>
+                {form.faculty === OTHER_VALUE ? (
+                  <input
+                    type="text"
+                    value={customFaculty}
+                    onChange={(e) => setCustomFaculty(e.target.value)}
+                    placeholder="Enter your faculty"
+                    className="mt-2 w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  />
+                ) : null}
                 {touched.faculty && fieldErrors.faculty ? (
                   <p id="faculty-error" className="mt-1 text-xs text-red-600">{fieldErrors.faculty}</p>
                 ) : null}
@@ -395,18 +473,31 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">Major<span className="text-red-500">*</span></label>
-                <p className="text-sm text-[var(--muted-foreground)] opacity-70 mb-1">Please insert full name of major EX. Computer Engineering</p>
-                <input
-                  type="text"
+                <p className="text-sm text-[var(--muted-foreground)] opacity-70 mb-1">Select from list or choose Other to type your major</p>
+                <select
                   value={form.major}
                   onChange={(e) => update("major", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, major: true }))}
                   className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder="e.g., Computer Engineering"
                   aria-invalid={Boolean(fieldErrors.major) || undefined}
                   aria-describedby={fieldErrors.major ? "major-error" : undefined}
                   required
-                />
+                >
+                  <option value="">Select major</option>
+                  {(form.faculty && form.faculty !== OTHER_VALUE ? FACULTY_TO_MAJORS[form.faculty] : []).map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                  <option value={OTHER_VALUE}>Other</option>
+                </select>
+                {form.major === OTHER_VALUE || !form.faculty ? (
+                  <input
+                    type="text"
+                    value={customMajor}
+                    onChange={(e) => setCustomMajor(e.target.value)}
+                    placeholder="Enter your major"
+                    className="mt-2 w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  />
+                ) : null}
                 {touched.major && fieldErrors.major ? (
                   <p id="major-error" className="mt-1 text-xs text-red-600">{fieldErrors.major}</p>
                 ) : null}
