@@ -70,6 +70,7 @@ export type Messages = {
     labels: {
       fullname: string;
       nickname: string;
+      year: string;
       faculty: string;
       major: string;
       phone: string;
@@ -92,6 +93,7 @@ export type Messages = {
     selectFaculty: string;
     selectMajor: string;
     selectMajorHint: string;
+  selectYear: string;
     other: string;
     section2Title: string;
     section2Intro: string;
@@ -118,11 +120,27 @@ export type Messages = {
       event_organizer: { title: string; description: string };
     };
     section3Title: string;
+    interview: {
+      heading: string;
+      description: string;
+      timeHint: string;
+      addSlot: string;
+      removeSlot: string;
+      dateLabel: string;
+      startLabel: string;
+      endLabel: string;
+      modeLabel: string;
+      modeOptions: { online: string; onsite: string };
+      modeHint: string;
+      summaryLabel: string;
+      summaryEmpty: string;
+    };
     qWhyLabel: string;
     qHowHelpLabel: string;
     qPortfolioLabel: string;
     qExpectLabel: string;
     errors: {
+      year: string;
       fullname: string;
       nickname: string;
       faculty: string;
@@ -133,6 +151,8 @@ export type Messages = {
       roles: string;
       qWhy: string;
       qHowHelp: string;
+      interviewSlotsRequired: string;
+      interviewSlotRange: string;
       submitFailed: string;
       redirectFailed: string;
     };

@@ -103,16 +103,88 @@ const FACULTY_TO_MAJORS: Record<string, string[]> = {
 type FormState = {
   fullname: string;
   nickname: string;
+  year: string;
   faculty: string;
   major: string;
   phone: string;
   email: string;
   contactOther: string;
   roles: Record<RoleKey, boolean>;
+  interviewSlots: InterviewSlot[];
   qWhy: string;
   qHowHelp: string;
   qPortfolio: string;
   qExpect: string;
+};
+
+type InterviewMode = "online" | "onsite";
+
+type InterviewSlot = {
+  date: string;
+  startTime: string;
+  endTime: string;
+  mode: InterviewMode;
+};
+
+const YEAR_OPTIONS = ["1", "2", "3", "4"] as const;
+
+const createInterviewSlot = (): InterviewSlot => ({
+  date: "",
+  startTime: "",
+  endTime: "",
+  mode: "onsite",
+});
+
+const MODE_SUMMARY_LABEL: Record<InterviewMode, string> = {
+  online: "Online",
+  onsite: "Onsite",
+};
+
+const normalizeTimeTo24Hour = (value: string): string | null => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const ampmMatch = trimmed.match(/^([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?\s*(AM|PM)$/i);
+  if (ampmMatch) {
+    let hours = parseInt(ampmMatch[1], 10);
+    const minutes = ampmMatch[2];
+    const period = ampmMatch[4].toUpperCase();
+    if (hours === 12) hours = period === "AM" ? 0 : 12;
+    else if (period === "PM") hours += 12;
+    if (hours < 0 || hours > 23) return null;
+    return `${hours.toString().padStart(2, "0")}:${minutes}`;
+  }
+
+  const twentyFourMatch = trimmed.match(/^([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?$/);
+  if (twentyFourMatch) {
+    const hours = parseInt(twentyFourMatch[1], 10);
+    const minutes = twentyFourMatch[2];
+    if (Number.isNaN(hours) || hours < 0 || hours > 23) return null;
+    return `${hours.toString().padStart(2, "0")}:${minutes}`;
+  }
+
+  return null;
+};
+
+const timeToMinutes = (value: string): number | null => {
+  const normalized = normalizeTimeTo24Hour(value);
+  if (!normalized) return null;
+  const [hours, minutes] = normalized.split(":");
+  const h = parseInt(hours, 10);
+  const m = parseInt(minutes, 10);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
+
+const formatInterviewSlotForSummary = (slot: InterviewSlot): string | null => {
+  const normalizedStart = normalizeTimeTo24Hour(slot.startTime);
+  const normalizedEnd = normalizeTimeTo24Hour(slot.endTime);
+  if (!slot.date || !normalizedStart || !normalizedEnd) return null;
+  const [year, month, day] = slot.date.split("-");
+  if (!year || !month || !day) return null;
+  const formattedDate = `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+  return `${formattedDate}+${normalizedStart}-${normalizedEnd}+${MODE_SUMMARY_LABEL[slot.mode]}`;
 };
 
 type RoleCardProps = {
@@ -182,12 +254,14 @@ export default function RegisterPage() {
   const [form, setForm] = useState<FormState>({
     fullname: "",
     nickname: "",
+    year: "",
     faculty: "",
     major: "",
     phone: "",
     email: "",
     contactOther: "",
     roles: emptyRoles,
+    interviewSlots: [createInterviewSlot()],
     qWhy: "",
     qHowHelp: "",
     qPortfolio: "",
@@ -217,10 +291,46 @@ export default function RegisterPage() {
     }));
   }
 
+  function updateInterviewSlot(index: number, patch: Partial<InterviewSlot>) {
+    setForm((prev) => {
+      const nextSlots = prev.interviewSlots.map((slot, i) => {
+        if (i !== index) return slot;
+        const nextSlot: InterviewSlot = { ...slot };
+        if (patch.date !== undefined) nextSlot.date = patch.date;
+        if (patch.startTime !== undefined) {
+          nextSlot.startTime = patch.startTime ? normalizeTimeTo24Hour(patch.startTime) ?? patch.startTime : "";
+        }
+        if (patch.endTime !== undefined) {
+          nextSlot.endTime = patch.endTime ? normalizeTimeTo24Hour(patch.endTime) ?? patch.endTime : "";
+        }
+        if (patch.mode !== undefined) nextSlot.mode = patch.mode;
+        return nextSlot;
+      });
+      return { ...prev, interviewSlots: nextSlots };
+    });
+  }
+
+  function addInterviewSlot() {
+    setForm((prev) => ({ ...prev, interviewSlots: [...prev.interviewSlots, createInterviewSlot()] }));
+  }
+
+  function removeInterviewSlot(index: number) {
+    setForm((prev) => {
+      const nextSlots = prev.interviewSlots.filter((_, i) => i !== index);
+      return { ...prev, interviewSlots: nextSlots.length > 0 ? nextSlots : [createInterviewSlot()] };
+    });
+  }
+
+  const interviewSummary = useMemo(() => {
+    const formatted = form.interviewSlots.map((slot) => formatInterviewSlotForSummary(slot)).filter((value): value is string => Boolean(value));
+    return formatted.join("\n");
+  }, [form.interviewSlots]);
+
   function validate() {
     const errors: Record<string, string> = {};
     if (!form.fullname) errors.fullname = messages.register.errors.fullname;
     if (!form.nickname) errors.nickname = messages.register.errors.nickname;
+    if (!form.year) errors.year = messages.register.errors.year;
     const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
     const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
     if (!facultyFinal) errors.faculty = messages.register.errors.faculty;
@@ -232,6 +342,34 @@ export default function RegisterPage() {
     if (!selectedRoles) errors.roles = messages.register.errors.roles;
     if (!form.qWhy) errors.qWhy = messages.register.errors.qWhy;
     if (!form.qHowHelp) errors.qHowHelp = messages.register.errors.qHowHelp;
+    const missingSlotIndices: number[] = [];
+    const invalidSlotIndices: number[] = [];
+    form.interviewSlots.forEach((slot, index) => {
+      if (!slot.date) {
+        missingSlotIndices.push(index);
+        return;
+      }
+      const start = timeToMinutes(slot.startTime);
+      const end = timeToMinutes(slot.endTime);
+      if (start === null || end === null) {
+        missingSlotIndices.push(index);
+        return;
+      }
+      if (end <= start) {
+        invalidSlotIndices.push(index);
+      }
+    });
+    if (form.interviewSlots.length === 0 || missingSlotIndices.length > 0) {
+      errors.interviewSlots = messages.register.errors.interviewSlotsRequired;
+    }
+    if (invalidSlotIndices.length > 0) {
+      for (const idx of invalidSlotIndices) {
+        errors[`interviewSlot.${idx}`] = messages.register.errors.interviewSlotRange;
+      }
+      if (!errors.interviewSlots) {
+        errors.interviewSlots = messages.register.errors.interviewSlotRange;
+      }
+    }
     return errors;
   }
 
@@ -240,6 +378,7 @@ export default function RegisterPage() {
     if (s === 1) {
       if (!form.fullname) errors.fullname = messages.register.errors.fullname;
       if (!form.nickname) errors.nickname = messages.register.errors.nickname;
+      if (!form.year) errors.year = messages.register.errors.year;
       const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
       const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
       if (!facultyFinal) errors.faculty = messages.register.errors.faculty;
@@ -253,6 +392,34 @@ export default function RegisterPage() {
     } else if (s === 3) {
       if (!form.qWhy) errors.qWhy = messages.register.errors.qWhy;
       if (!form.qHowHelp) errors.qHowHelp = messages.register.errors.qHowHelp;
+      const missingSlotIndices: number[] = [];
+      const invalidSlotIndices: number[] = [];
+      form.interviewSlots.forEach((slot, index) => {
+        if (!slot.date) {
+          missingSlotIndices.push(index);
+          return;
+        }
+        const start = timeToMinutes(slot.startTime);
+        const end = timeToMinutes(slot.endTime);
+        if (start === null || end === null) {
+          missingSlotIndices.push(index);
+          return;
+        }
+        if (end <= start) {
+          invalidSlotIndices.push(index);
+        }
+      });
+      if (form.interviewSlots.length === 0 || missingSlotIndices.length > 0) {
+        errors.interviewSlots = messages.register.errors.interviewSlotsRequired;
+      }
+      if (invalidSlotIndices.length > 0) {
+        for (const idx of invalidSlotIndices) {
+          errors[`interviewSlot.${idx}`] = messages.register.errors.interviewSlotRange;
+        }
+        if (!errors.interviewSlots) {
+          errors.interviewSlots = messages.register.errors.interviewSlotRange;
+        }
+      }
     }
     return errors;
   }
@@ -268,7 +435,7 @@ export default function RegisterPage() {
   function onNext() {
     const errs = validateStep(step);
     setFieldErrors(errs);
-    if (step === 1) markTouched(["fullname", "nickname", "faculty", "major", "phone", "email"]);
+    if (step === 1) markTouched(["fullname", "nickname", "year", "faculty", "major", "phone", "email"]);
     if (step === 2) markTouched(["roles"]);
     if (Object.keys(errs).length === 0) setStep((s) => (s === 3 ? 3 : ((s + 1) as 2 | 3)));
   }
@@ -284,9 +451,22 @@ export default function RegisterPage() {
 
     const errors = validate();
     setFieldErrors(errors);
+    markTouched([
+      "fullname",
+      "nickname",
+      "year",
+      "faculty",
+      "major",
+      "phone",
+      "email",
+      "roles",
+      "qWhy",
+      "qHowHelp",
+      "interviewSlots",
+    ]);
     if (Object.keys(errors).length > 0) {
       // jump to first step that has errors
-      if (errors.fullname || errors.nickname || errors.facultyMajor || errors.phone || errors.email) setStep(1);
+      if (errors.fullname || errors.nickname || errors.year || errors.faculty || errors.major || errors.phone || errors.email) setStep(1);
       else if (errors.roles) setStep(2);
       else setStep(3);
       return;
@@ -297,10 +477,20 @@ export default function RegisterPage() {
 
       const facultyFinal = form.faculty === OTHER_VALUE ? customFaculty.trim() : form.faculty;
       const majorFinal = form.major === OTHER_VALUE ? customMajor.trim() : form.major;
+      const normalizedSlotsForSubmit = form.interviewSlots.map((slot) => ({
+        ...slot,
+        startTime: slot.startTime ? normalizeTimeTo24Hour(slot.startTime) ?? slot.startTime : "",
+        endTime: slot.endTime ? normalizeTimeTo24Hour(slot.endTime) ?? slot.endTime : "",
+      }));
+      const summaryForSubmit = normalizedSlotsForSubmit
+        .map((slot) => formatInterviewSlotForSummary(slot))
+        .filter((value): value is string => Boolean(value))
+        .join("\n");
 
       const params = new URLSearchParams();
       params.set("fullname", String(form.fullname ?? ""));
       params.set("nickname", String(form.nickname ?? ""));
+      params.set("year", String(form.year ?? ""));
       params.set("faculty", String(facultyFinal ?? ""));
       params.set("major", String(majorFinal ?? ""));
       params.set("phone", String(form.phone ?? ""));
@@ -316,6 +506,7 @@ export default function RegisterPage() {
       params.set("qHowHelp", String(form.qHowHelp ?? ""));
       params.set("qPortfolio", String(form.qPortfolio ?? ""));
       params.set("qExpect", String(form.qExpect ?? ""));
+      params.set("interviewSummary", summaryForSubmit);
 
       const res = await fetch(`/api/register`, {
         method: "POST",
@@ -323,12 +514,15 @@ export default function RegisterPage() {
         body: JSON.stringify({
           fullname: form.fullname,
           nickname: form.nickname,
+          year: form.year,
           faculty: facultyFinal,
           major: majorFinal,
           phone: form.phone,
           email: form.email,
           contactOther: form.contactOther,
           roles: selectedRoleLabels,
+          interviewSummary: summaryForSubmit,
+          interviewSlots: normalizedSlotsForSubmit,
           qWhy: form.qWhy,
           qHowHelp: form.qHowHelp,
           qPortfolio: form.qPortfolio,
@@ -436,6 +630,27 @@ export default function RegisterPage() {
                 />
                 {touched.nickname && fieldErrors.nickname ? (
                   <p id="nickname-error" className="mt-1 text-xs text-red-600">{fieldErrors.nickname}</p>
+                ) : null}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">{messages.register.labels.year}<span className="text-red-500">*</span></label>
+                <select
+                  value={form.year}
+                  onChange={(e) => update("year", e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, year: true }))}
+                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                  aria-invalid={Boolean(fieldErrors.year) || undefined}
+                  aria-describedby={fieldErrors.year ? "year-error" : undefined}
+                  required
+                >
+                  <option value="">{messages.register.selectYear}</option>
+                  {YEAR_OPTIONS.map((yearValue) => (
+                    <option key={yearValue} value={yearValue}>{yearValue}</option>
+                  ))}
+                </select>
+                {touched.year && fieldErrors.year ? (
+                  <p id="year-error" className="mt-1 text-xs text-red-600">{fieldErrors.year}</p>
                 ) : null}
               </div>
 
@@ -691,6 +906,129 @@ export default function RegisterPage() {
           <section>
             <h2 className="text-xl font-semibold mb-3">{messages.register.section3Title}</h2>
             <div className="space-y-5">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--color-muted-200)] bg-[var(--color-muted-50)]/40 p-4 space-y-4">
+                <div>
+                  <div className="flex items-center gap-1 text-sm font-medium">
+                    <span>{messages.register.interview.heading}</span>
+                    <span className="text-red-500">*</span>
+                  </div>
+                  <p className="text-sm text-[var(--muted-foreground)] mt-1">{messages.register.interview.description}</p>
+                </div>
+                <div className="space-y-4">
+                  {form.interviewSlots.map((slot, index) => {
+                    const slotErrorKey = `interviewSlot.${index}`;
+                    const slotError = touched.interviewSlots ? fieldErrors[slotErrorKey] : undefined;
+                    const slotHasError = Boolean(slotError);
+                    const timeInputClass =
+                      "w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border focus:outline-none focus:ring-2 " +
+                      (slotHasError ? "border-red-400 focus:ring-red-400" : "border-[var(--color-muted-200)] focus:ring-[var(--color-accent-orange)]");
+                    return (
+                      <div
+                        key={index}
+                        className={
+                          "rounded-[var(--radius-md)] border p-4 space-y-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)] " +
+                          (slotHasError ? "border-red-300 bg-red-50/40" : "border-[var(--color-muted-200)]")
+                        }
+                        aria-invalid={slotHasError || undefined}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              {messages.register.interview.dateLabel}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              value={slot.date}
+                              onChange={(e) => updateInterviewSlot(index, { date: e.target.value })}
+                              onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
+                              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium mb-1">
+                                {messages.register.interview.startLabel}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="time"
+                                value={slot.startTime}
+                                onChange={(e) => updateInterviewSlot(index, { startTime: e.target.value })}
+                                onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
+                                aria-invalid={slotHasError || undefined}
+                                className={timeInputClass}
+                                required
+                              />
+                              {slot.startTime && (
+                                <p className="text-sm text-[var(--muted-foreground)] mt-2 text-center opacity-70">{messages.register.interview.timeHint} {normalizeTimeTo24Hour(slot.startTime)}.</p>
+                              )}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">
+                                {messages.register.interview.endLabel}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="time"
+                                value={slot.endTime}
+                                onChange={(e) => updateInterviewSlot(index, { endTime: e.target.value })}
+                                onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
+                                aria-invalid={slotHasError || undefined}
+                                className={timeInputClass}
+                                required
+                              />
+                              {slot.endTime && (
+                                <p className="text-sm text-[var(--muted-foreground)] mt-2 text-center opacity-70">{messages.register.interview.timeHint} {normalizeTimeTo24Hour(slot.endTime)}.</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                          <div className="w-full md:w-auto">
+                            <label className="block text-sm font-medium mb-1">
+                              {messages.register.interview.modeLabel}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={slot.mode}
+                              onChange={(e) => updateInterviewSlot(index, { mode: e.target.value as InterviewMode })}
+                              onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
+                              className="w-full md:w-48 h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
+                            >
+                              <option value="online">{messages.register.interview.modeOptions.online}</option>
+                              <option value="onsite">{messages.register.interview.modeOptions.onsite}</option>
+                            </select>
+                            <p className="text-sm text-[var(--muted-foreground)] mt-3 text-center opacity-70">{messages.register.interview.modeHint}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeInterviewSlot(index)}
+                            className="inline-flex items-center justify-center rounded-full px-4 h-10 text-sm font-medium border border-[var(--color-muted-300)] text-[var(--muted-foreground)] hover:bg-[var(--color-muted-200)] disabled:opacity-60"
+                            disabled={form.interviewSlots.length === 1}
+                          >
+                            {messages.register.interview.removeSlot}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    onClick={addInterviewSlot}
+                    className="inline-flex items-center justify-center rounded-full px-5 h-10 bg-[var(--color-accent-orange)] text-white text-sm font-medium hover:bg-[var(--color-accent-orange-600)]"
+                  >
+                    {messages.register.interview.addSlot}
+                  </button>
+                </div>
+                {touched.interviewSlots && fieldErrors.interviewSlots ? (
+                  <p className="text-xs text-red-600">{fieldErrors.interviewSlots}</p>
+                ) : null}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">{messages.register.qWhyLabel}<span className="text-red-500">*</span></label>
                 <textarea
