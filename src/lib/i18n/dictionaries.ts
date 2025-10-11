@@ -69,7 +69,7 @@ export const messagesByLocale: Record<Locale, Messages> = {
     },
     register: {
       title: "Apply to join UCAN Community",
-      subtitle: "Applications open from 7 - 11 October 2025",
+      subtitle: "Applications open from 12 - 18 October 2025",
   steps: { s1: "General Info", s2: "Select Roles", s3: "Interview & Questions" },
       section1Title: "Section 1: General Information",
       labels: {
@@ -279,7 +279,7 @@ export const messagesByLocale: Record<Locale, Messages> = {
     },
     register: {
       title: "สมัครเข้าร่วม UCAN Community",
-      subtitle: "เปิดรับสมัครวันที่ 7 - 11 ตุลาคม 2025",
+      subtitle: "เปิดรับสมัครวันที่ 12 - 18 ตุลาคม 2025",
       steps: { s1: "ข้อมูลทั่วไป", s2: "เลือกบทบาท", s3: "ตารางสัมภาษณ์ & คำถาม" },
       section1Title: "ส่วนที่ 1: ข้อมูลทั่วไป",
       labels: {
