@@ -152,8 +152,8 @@ export default function Editor() {
         </div>
         <div className="mt-3 grid gap-3">
           {data.upcomingPrograms.map((p, idx) => (
-            <div key={idx} className="border rounded-lg p-3 bg-gray-50">
-              <div className="grid md:grid-cols-2 gap-2 mb-2">
+            <div key={idx} className="grid gap-2">
+              <div className="grid md:grid-cols-2 gap-2">
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col gap-1">
                     <button
@@ -197,7 +197,7 @@ export default function Editor() {
                   update("upcomingPrograms", next);
                 }} placeholder="Register Path (e.g., /startup-playground-4)" className="border rounded px-2 py-1" />
               </div>
-              <div className="grid md:grid-cols-3 gap-2 items-center">
+              <div className="grid md:grid-cols-4 gap-2 items-center">
                 <input value={p.image ?? ""} onChange={(e) => {
                   const next = [...data.upcomingPrograms];
                   next[idx] = { ...next[idx], image: e.target.value } as ProgramItem;
@@ -209,9 +209,9 @@ export default function Editor() {
                     next[idx] = { ...next[idx], image: url } as ProgramItem;
                     update("upcomingPrograms", next);
                     setPickerOpen(null);
-                  })} className="px-2 py-1 border rounded">Select Image</button>
+                  })} className="px-2 py-1 border rounded">Select</button>
                 </div>
-                <div className="h-20 w-32 border rounded overflow-hidden bg-white grid place-items-center">
+                <div className="h-20 w-32 border rounded overflow-hidden bg-white/40 grid place-items-center">
                   {p.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={toDisplaySrc(p.image)} alt={p.title || "preview"} className="object-cover w-full h-full" />
@@ -219,9 +219,7 @@ export default function Editor() {
                     <span className="text-xs text-gray-500">No image</span>
                   )}
                 </div>
-              </div>
-              <div className="mt-2">
-                <button onClick={() => update("upcomingPrograms", data.upcomingPrograms.filter((_, i) => i !== idx))} className="text-red-600 text-sm">Remove Program</button>
+                <button onClick={() => update("upcomingPrograms", data.upcomingPrograms.filter((_, i) => i !== idx))} className="justify-self-start text-red-600">Remove</button>
               </div>
             </div>
           ))}
