@@ -6,7 +6,9 @@ import ContactFooter from "@/components/ContactFooter";
 import { IoIosInformationCircleOutline } from "react-icons/io";
 import { MdOutlineQuestionAnswer } from "react-icons/md";
 import { IoArrowBack } from "react-icons/io5";
-import { TextInput, TextArea, Select, SelectWithCustom } from "@/components/form";
+import { TextInput, TextArea, Select, SelectWithCustom, RoleCard } from "@/components/form";
+import { useI18n } from "@/lib/i18n/context";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 // Faculties and majors (departments/programs) for KMUTT
 const OTHER_VALUE = "__OTHER__";
@@ -77,15 +79,29 @@ type FormState = {
   email: string;
   phone: string;
   lineId: string;
-  interests: string;
+  interests: string[];
+  customInterest: string;
   reason: string;
   hasStartupExperience: string;
 };
 
 const YEAR_OPTIONS = ["1", "2", "3", "4"] as const;
 
+const INTEREST_OPTIONS = [
+  "ธุรกิจ (Business)",
+  "การเงิน (Finance)",
+  "เทคโนโลยี (Technology)",
+  "AI (Artificial Intelligence)",
+  "การตลาด (Marketing)",
+  "การออกแบบ (Design)",
+  "การพัฒนาผลิตภัณฑ์ (Product Development)",
+  "Sustainability",
+  "Social Impact",
+] as const;
+
 export default function StartupPlayground4Page() {
   const router = useRouter();
+  const { messages } = useI18n();
   
   const [formData, setFormData] = useState<FormState>({
     fullname: "",
@@ -98,7 +114,8 @@ export default function StartupPlayground4Page() {
     email: "",
     phone: "",
     lineId: "",
-    interests: "",
+    interests: [],
+    customInterest: "",
     reason: "",
     hasStartupExperience: "",
   });
@@ -115,6 +132,7 @@ export default function StartupPlayground4Page() {
     phone: false,
     lineId: false,
     interests: false,
+    customInterest: false,
     reason: false,
     hasStartupExperience: false,
   });
@@ -147,23 +165,28 @@ export default function StartupPlayground4Page() {
       "hasStartupExperience",
     ];
 
-    if (requiredFields.includes(key) && !value.trim()) {
-      return "กรุณากรอกข้อมูล";
+    // Special validation for interests array
+    if (key === "interests" && Array.isArray(value) && value.length === 0) {
+      return messages.startupPlayground.errors.interestsRequired;
+    }
+
+    if (requiredFields.includes(key) && !Array.isArray(value) && typeof value === "string" && !value.trim()) {
+      return messages.startupPlayground.errors.required;
     }
 
     // Email validation
-    if (key === "email" && value) {
+    if (key === "email" && typeof value === "string" && value) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
-        return "รูปแบบอีเมลไม่ถูกต้อง";
+        return messages.startupPlayground.errors.emailInvalid;
       }
     }
 
     // Phone validation
-    if (key === "phone" && value) {
+    if (key === "phone" && typeof value === "string" && value) {
       const phoneRegex = /^[0-9]{9,10}$/;
       if (!phoneRegex.test(value.replace(/[-\s]/g, ""))) {
-        return "รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง";
+        return messages.startupPlayground.errors.phoneInvalid;
       }
     }
 
@@ -203,22 +226,57 @@ export default function StartupPlayground4Page() {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+      alert(messages.startupPlayground.errors.required);
       return;
     }
 
     setIsSubmitting(true);
 
-    // Mock submission - just log the data
-    console.log("Form submitted:", formData);
+    try {
+      // Prepare the payload
+      const interestsList = [...formData.interests];
+      if (formData.customInterest.trim()) {
+        interestsList.push(`${messages.startupPlayground.labels.customInterest}: ${formData.customInterest.trim()}`);
+      }
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      const payload = {
+        fullname: formData.fullname,
+        nickname: formData.nickname,
+        faculty: formData.faculty === OTHER_VALUE ? formData.customFaculty : formData.faculty,
+        major: formData.major === OTHER_VALUE ? formData.customMajor : formData.major,
+        year: formData.year,
+        email: formData.email,
+        phone: formData.phone,
+        lineId: formData.lineId,
+        interests: interestsList.join(", "),
+        reason: formData.reason,
+        hasStartupExperience: formData.hasStartupExperience,
+      };
 
-    setIsSubmitting(false);
+      console.log("Submitting form:", payload);
 
-    // Navigate to success page
-    router.push("/startup-playground-4/success");
+      const response = await fetch("/api/startup-playground-4", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to submit form");
+      }
+
+      // Navigate to success page
+      router.push("/startup-playground-4/success");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert(messages.startupPlayground.errors.submitFailed);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const majorOptions = formData.faculty
@@ -227,6 +285,9 @@ export default function StartupPlayground4Page() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      <div className="container-page px-4 py-3 flex items-center justify-end">
+        <LanguageSwitcher />
+      </div>
       <div className="container-page max-w-4xl mx-auto px-4 py-10 mb-20">
         {/* Back Button */}
         <Link
@@ -234,14 +295,14 @@ export default function StartupPlayground4Page() {
           className="inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--color-accent-orange)] transition-colors mb-6"
         >
           <IoArrowBack className="text-xl" />
-          <span>กลับสู่หน้าหลัก</span>
+          <span>{messages.startupPlayground.backToHome}</span>
         </Link>
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-3">KMUTT Startup Playground 4</h1>
+          <h1 className="text-4xl font-bold mb-3">{messages.startupPlayground.title}</h1>
           <p className="text-lg text-[var(--muted-foreground)]">
-            ลงทะเบียนเข้าร่วมกิจกรรม
+            {messages.startupPlayground.subtitle}
           </p>
         </div>
 
@@ -251,27 +312,27 @@ export default function StartupPlayground4Page() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <IoIosInformationCircleOutline className="text-2xl text-[var(--color-accent-orange)]" />
-              <h2 className="text-2xl font-semibold">ข้อมูลพื้นฐาน</h2>
+              <h2 className="text-2xl font-semibold">{messages.startupPlayground.section1Title}</h2>
             </div>
 
             <div className="space-y-4">
               <TextInput
-                label="ชื่อ-นามสกุล"
+                label={messages.startupPlayground.labels.fullname}
                 value={formData.fullname}
                 onChange={(value) => handleChange("fullname", value)}
                 onBlur={() => handleBlur("fullname")}
-                placeholder="กรอกชื่อ-นามสกุล"
+                placeholder={messages.startupPlayground.placeholders.fullname}
                 required
                 error={validateField("fullname")}
                 touched={touched.fullname}
               />
 
               <TextInput
-                label="ชื่อเล่น"
+                label={messages.startupPlayground.labels.nickname}
                 value={formData.nickname}
                 onChange={(value) => handleChange("nickname", value)}
                 onBlur={() => handleBlur("nickname")}
-                placeholder="กรอกชื่อเล่น"
+                placeholder={messages.startupPlayground.placeholders.nickname}
                 required
                 error={validateField("nickname")}
                 touched={touched.nickname}
@@ -279,7 +340,7 @@ export default function StartupPlayground4Page() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <SelectWithCustom
-                  label="คณะ"
+                  label={messages.startupPlayground.labels.faculty}
                   value={formData.faculty}
                   onChange={(value) => {
                     handleChange("faculty", value);
@@ -287,29 +348,29 @@ export default function StartupPlayground4Page() {
                   }}
                   onBlur={() => handleBlur("faculty")}
                   options={Object.keys(FACULTY_TO_MAJORS).map((f) => ({ value: f, label: f }))}
-                  placeholder="เลือกคณะ"
+                  placeholder={messages.startupPlayground.selectFaculty}
                   customValue={formData.customFaculty}
                   onCustomValueChange={(value) => handleChange("customFaculty", value)}
-                  customPlaceholder="ระบุคณะอื่นๆ"
+                  customPlaceholder={messages.startupPlayground.placeholders.faculty}
                   otherOptionValue={OTHER_VALUE}
-                  otherOptionLabel="อื่นๆ (โปรดระบุ)"
+                  otherOptionLabel={messages.startupPlayground.other}
                   required
                   error={validateField("faculty")}
                   touched={touched.faculty}
                 />
 
                 <SelectWithCustom
-                  label="สาขา"
+                  label={messages.startupPlayground.labels.major}
                   value={formData.major}
                   onChange={(value) => handleChange("major", value)}
                   onBlur={() => handleBlur("major")}
                   options={majorOptions}
-                  placeholder={formData.faculty ? "เลือกสาขา" : "เลือกคณะก่อน"}
+                  placeholder={formData.faculty ? messages.startupPlayground.selectMajor : messages.startupPlayground.placeholders.selectFacultyFirst}
                   customValue={formData.customMajor}
                   onCustomValueChange={(value) => handleChange("customMajor", value)}
-                  customPlaceholder="ระบุสาขาอื่นๆ"
+                  customPlaceholder={messages.startupPlayground.placeholders.major}
                   otherOptionValue={OTHER_VALUE}
-                  otherOptionLabel="อื่นๆ (โปรดระบุ)"
+                  otherOptionLabel={messages.startupPlayground.other}
                   required
                   error={validateField("major")}
                   touched={touched.major}
@@ -317,47 +378,47 @@ export default function StartupPlayground4Page() {
               </div>
 
               <Select
-                label="ชั้นปี"
+                label={messages.startupPlayground.labels.year}
                 value={formData.year}
                 onChange={(value) => handleChange("year", value)}
                 onBlur={() => handleBlur("year")}
-                options={YEAR_OPTIONS.map((y) => ({ value: y, label: `ปี ${y}` }))}
-                placeholder="เลือกชั้นปี"
+                options={YEAR_OPTIONS.map((y) => ({ value: y, label: `${messages.startupPlayground.labels.year} ${y}` }))}
+                placeholder={messages.startupPlayground.selectYear}
                 required
                 error={validateField("year")}
                 touched={touched.year}
               />
 
               <TextInput
-                label="อีเมล"
+                label={messages.startupPlayground.labels.email}
                 type="email"
                 value={formData.email}
                 onChange={(value) => handleChange("email", value)}
                 onBlur={() => handleBlur("email")}
-                placeholder="example@mail.kmutt.ac.th"
+                placeholder={messages.startupPlayground.placeholders.email}
                 required
                 error={validateField("email")}
                 touched={touched.email}
               />
 
               <TextInput
-                label="เบอร์โทรศัพท์"
+                label={messages.startupPlayground.labels.phone}
                 type="tel"
                 value={formData.phone}
                 onChange={(value) => handleChange("phone", value)}
                 onBlur={() => handleBlur("phone")}
-                placeholder="0812345678"
+                placeholder={messages.startupPlayground.placeholders.phone}
                 required
                 error={validateField("phone")}
                 touched={touched.phone}
               />
 
               <TextInput
-                label="LINE ID"
+                label={messages.startupPlayground.labels.lineId}
                 value={formData.lineId}
                 onChange={(value) => handleChange("lineId", value)}
                 onBlur={() => handleBlur("lineId")}
-                placeholder="กรอก LINE ID"
+                placeholder={messages.startupPlayground.placeholders.lineId}
                 required
                 error={validateField("lineId")}
                 touched={touched.lineId}
@@ -369,28 +430,51 @@ export default function StartupPlayground4Page() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <MdOutlineQuestionAnswer className="text-2xl text-[var(--color-accent-orange)]" />
-              <h2 className="text-2xl font-semibold">ความสนใจและแรงบันดาลใจ</h2>
+              <h2 className="text-2xl font-semibold">{messages.startupPlayground.section2Title}</h2>
             </div>
 
             <div className="space-y-4">
-              <TextArea
-                label="สนใจเรื่องใดเป็นพิเศษ"
-                value={formData.interests}
-                onChange={(value) => handleChange("interests", value)}
-                onBlur={() => handleBlur("interests")}
-                placeholder="เช่น ธุรกิจ, การเงิน, เทคโนโลยี, AI, การตลาด ฯลฯ"
-                required
-                error={validateField("interests")}
-                touched={touched.interests}
-                minHeight="min-h-24"
-              />
+              <div>
+                <label className="block text-sm font-medium mb-3">
+                  {messages.startupPlayground.labels.interests}
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                  {INTEREST_OPTIONS.map((interest) => (
+                    <RoleCard
+                      key={interest}
+                      title={interest}
+                      description=""
+                      checked={formData.interests.includes(interest)}
+                      onToggle={() => {
+                        const newInterests = formData.interests.includes(interest)
+                          ? formData.interests.filter((i) => i !== interest)
+                          : [...formData.interests, interest];
+                        handleChange("interests", newInterests);
+                        handleBlur("interests");
+                      }}
+                      inputId={`interest-${interest.replace(/\s+/g, "-").toLowerCase()}`}
+                    />
+                  ))}
+                </div>
+                <TextInput
+                  label={messages.startupPlayground.labels.customInterest}
+                  value={formData.customInterest}
+                  onChange={(value) => handleChange("customInterest", value)}
+                  onBlur={() => handleBlur("customInterest")}
+                  placeholder={messages.startupPlayground.placeholders.customInterest}
+                />
+                {touched.interests && validateField("interests") && (
+                  <p className="mt-1 text-xs text-red-600">{validateField("interests")}</p>
+                )}
+              </div>
 
               <TextArea
-                label="เหตุผลที่อยากเข้าร่วมกิจกรรมนี้"
+                label={messages.startupPlayground.labels.reason}
                 value={formData.reason}
                 onChange={(value) => handleChange("reason", value)}
                 onBlur={() => handleBlur("reason")}
-                placeholder="กรอกเหตุผล 1-2 ประโยคพอ"
+                placeholder={messages.startupPlayground.placeholders.reason}
                 required
                 error={validateField("reason")}
                 touched={touched.reason}
@@ -399,7 +483,7 @@ export default function StartupPlayground4Page() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  เคยมีประสบการณ์ในการทำ Startup มาก่อนหรือไม่
+                  {messages.startupPlayground.labels.hasStartupExperience}
                   <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2">
@@ -413,7 +497,7 @@ export default function StartupPlayground4Page() {
                       onBlur={() => handleBlur("hasStartupExperience")}
                       className="w-4 h-4 text-[var(--color-accent-orange)] focus:ring-[var(--color-accent-orange)]"
                     />
-                    <span>เคย</span>
+                    <span>{messages.startupPlayground.experienceOptions.yes}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -425,7 +509,7 @@ export default function StartupPlayground4Page() {
                       onBlur={() => handleBlur("hasStartupExperience")}
                       className="w-4 h-4 text-[var(--color-accent-orange)] focus:ring-[var(--color-accent-orange)]"
                     />
-                    <span>ไม่เคย</span>
+                    <span>{messages.startupPlayground.experienceOptions.no}</span>
                   </label>
                 </div>
                 {touched.hasStartupExperience && validateField("hasStartupExperience") && (
@@ -442,14 +526,14 @@ export default function StartupPlayground4Page() {
               disabled={isSubmitting}
               className="rounded-[999px] px-8 h-12 inline-flex items-center justify-center bg-[var(--color-accent-orange)] text-white font-medium hover:bg-[var(--color-accent-orange-600)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isSubmitting ? "กำลังส่ง..." : "ลงทะเบียน"}
+              {isSubmitting ? messages.startupPlayground.submitting : messages.startupPlayground.submitButton}
             </button>
           </div>
         </form>
 
         {/* Note */}
         <div className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
-          <p>ข้อมูลของคุณจะถูกใช้เพื่อการติดต่อและแจ้งข่าวสารเกี่ยวกับกิจกรรมเท่านั้น</p>
+          <p>{messages.startupPlayground.footerNote}</p>
         </div>
       </div>
 

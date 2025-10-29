@@ -170,6 +170,75 @@ export type Messages = {
     emphasize: string;
     backHome: string;
   };
+  startupPlayground: {
+    title: string;
+    subtitle: string;
+    backToHome: string;
+    section1Title: string;
+    section2Title: string;
+    labels: {
+      fullname: string;
+      nickname: string;
+      faculty: string;
+      major: string;
+      year: string;
+      email: string;
+      phone: string;
+      lineId: string;
+      interests: string;
+      customInterest: string;
+      reason: string;
+      hasStartupExperience: string;
+    };
+    placeholders: {
+      fullname: string;
+      nickname: string;
+      faculty: string;
+      major: string;
+      selectFacultyFirst: string;
+      year: string;
+      email: string;
+      phone: string;
+      lineId: string;
+      customInterest: string;
+      reason: string;
+    };
+    interestOptions: {
+      business: string;
+      finance: string;
+      technology: string;
+      ai: string;
+      marketing: string;
+      design: string;
+      productDevelopment: string;
+      sustainability: string;
+      socialImpact: string;
+    };
+    experienceOptions: {
+      yes: string;
+      no: string;
+    };
+    selectFaculty: string;
+    selectMajor: string;
+    selectYear: string;
+    other: string;
+    submitButton: string;
+    submitting: string;
+    footerNote: string;
+    errors: {
+      required: string;
+      emailInvalid: string;
+      phoneInvalid: string;
+      interestsRequired: string;
+      submitFailed: string;
+    };
+  };
+  startupPlaygroundSuccess: {
+    title: string;
+    message: string;
+    emphasize: string;
+    backHome: string;
+  };
 };
 
 
