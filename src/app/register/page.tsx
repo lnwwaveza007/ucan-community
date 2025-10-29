@@ -8,6 +8,7 @@ import { MdOutlineQuestionAnswer } from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { TextInput, TextArea, Select, SelectWithCustom, RoleCard, InterviewSlotInput } from "@/components/form";
 
 type RoleKey =
   | "outreach_sponsor"
@@ -186,49 +187,6 @@ const formatInterviewSlotForSummary = (slot: InterviewSlot): string | null => {
   const formattedDate = `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
   return `${formattedDate}+${normalizedStart}-${normalizedEnd}+${MODE_SUMMARY_LABEL[slot.mode]}`;
 };
-
-type RoleCardProps = {
-  title: string;
-  description: string;
-  checked: boolean;
-  onToggle: () => void;
-  inputId: string;
-};
-
-function RoleCard({ title, description, checked, onToggle, inputId }: RoleCardProps) {
-  return (
-    <label
-      htmlFor={inputId}
-      className={
-        "block rounded-[var(--radius-lg)] border transition-all cursor-pointer select-none " +
-        (checked
-          ? "border-[var(--color-accent-orange)] bg-[color-mix(in_oklab,var(--color-accent-orange)_12%,transparent)] shadow-sm"
-          : "border-[var(--color-muted-200)] hover:border-[var(--color-accent-orange)]")
-      }
-    >
-      <input id={inputId} type="checkbox" checked={checked} onChange={onToggle} className="sr-only" />
-      <div className="p-4 flex items-start gap-3">
-        <span
-          aria-hidden="true"
-          className={
-            "mt-1 inline-flex w-5 h-5 items-center justify-center rounded-md border transition-colors " +
-            (checked
-              ? "bg-[var(--color-accent-orange)] border-[var(--color-accent-orange)] text-white"
-              : "bg-white border-[var(--color-muted-300)] text-transparent")
-          }
-        >
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 10l3 3 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span>
-          <div className="font-medium">{title}</div>
-          <p className="text-sm text-[var(--muted-foreground)]">{description}</p>
-        </span>
-      </div>
-    </label>
-  );
-}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -597,177 +555,106 @@ export default function RegisterPage() {
           <section>
             <h2 className="text-xl font-semibold mb-3">{messages.register.section1Title}</h2>
             <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.fullname}<span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={form.fullname}
-                  onChange={(e) => update("fullname", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, fullname: true }))}
-                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.fullname}
-                  aria-invalid={Boolean(fieldErrors.fullname) || undefined}
-                  aria-describedby={fieldErrors.fullname ? "fullname-error" : undefined}
-                  required
-                />
-                {touched.fullname && fieldErrors.fullname ? (
-                  <p id="fullname-error" className="mt-1 text-xs text-red-600">{fieldErrors.fullname}</p>
-                ) : null}
-              </div>
+              <TextInput
+                label={messages.register.labels.fullname}
+                value={form.fullname}
+                onChange={(value) => update("fullname", value)}
+                onBlur={() => setTouched((t) => ({ ...t, fullname: true }))}
+                placeholder={messages.register.placeholders.fullname}
+                required
+                error={fieldErrors.fullname}
+                touched={touched.fullname}
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.nickname}<span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={form.nickname}
-                  onChange={(e) => update("nickname", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, nickname: true }))}
-                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.nickname}
-                  aria-invalid={Boolean(fieldErrors.nickname) || undefined}
-                  aria-describedby={fieldErrors.nickname ? "nickname-error" : undefined}
-                  required
-                />
-                {touched.nickname && fieldErrors.nickname ? (
-                  <p id="nickname-error" className="mt-1 text-xs text-red-600">{fieldErrors.nickname}</p>
-                ) : null}
-              </div>
+              <TextInput
+                label={messages.register.labels.nickname}
+                value={form.nickname}
+                onChange={(value) => update("nickname", value)}
+                onBlur={() => setTouched((t) => ({ ...t, nickname: true }))}
+                placeholder={messages.register.placeholders.nickname}
+                required
+                error={fieldErrors.nickname}
+                touched={touched.nickname}
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.year}<span className="text-red-500">*</span></label>
-                <select
-                  value={form.year}
-                  onChange={(e) => update("year", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, year: true }))}
-                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  aria-invalid={Boolean(fieldErrors.year) || undefined}
-                  aria-describedby={fieldErrors.year ? "year-error" : undefined}
-                  required
-                >
-                  <option value="">{messages.register.selectYear}</option>
-                  {YEAR_OPTIONS.map((yearValue) => (
-                    <option key={yearValue} value={yearValue}>{yearValue}</option>
-                  ))}
-                </select>
-                {touched.year && fieldErrors.year ? (
-                  <p id="year-error" className="mt-1 text-xs text-red-600">{fieldErrors.year}</p>
-                ) : null}
-              </div>
+              <Select
+                label={messages.register.labels.year}
+                value={form.year}
+                onChange={(value) => update("year", value)}
+                onBlur={() => setTouched((t) => ({ ...t, year: true }))}
+                options={YEAR_OPTIONS.map((y) => ({ value: y, label: y }))}
+                placeholder={messages.register.selectYear}
+                required
+                error={fieldErrors.year}
+                touched={touched.year}
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.faculty}<span className="text-red-500">*</span></label>
-                <select
-                  value={form.faculty}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    update("faculty", value);
-                    // Reset major when faculty changes
-                    update("major", "");
-                  }}
-                  onBlur={() => setTouched((t) => ({ ...t, faculty: true }))}
-                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  aria-invalid={Boolean(fieldErrors.faculty) || undefined}
-                  aria-describedby={fieldErrors.faculty ? "faculty-error" : undefined}
-                  required
-                >
-                  <option value="">{messages.register.selectFaculty}</option>
-                  {Object.keys(FACULTY_TO_MAJORS).map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                  <option value={OTHER_VALUE}>{messages.register.other}</option>
-                </select>
-                {form.faculty === OTHER_VALUE ? (
-                  <input
-                    type="text"
-                    value={customFaculty}
-                    onChange={(e) => setCustomFaculty(e.target.value)}
-                    placeholder={messages.register.placeholders.enterFaculty}
-                    className="mt-2 w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  />
-                ) : null}
-                {touched.faculty && fieldErrors.faculty ? (
-                  <p id="faculty-error" className="mt-1 text-xs text-red-600">{fieldErrors.faculty}</p>
-                ) : null}
-              </div>
+              <SelectWithCustom
+                label={messages.register.labels.faculty}
+                value={form.faculty}
+                onChange={(value) => {
+                  update("faculty", value);
+                  update("major", "");
+                }}
+                onBlur={() => setTouched((t) => ({ ...t, faculty: true }))}
+                options={Object.keys(FACULTY_TO_MAJORS).map((f) => ({ value: f, label: f }))}
+                placeholder={messages.register.selectFaculty}
+                required
+                error={fieldErrors.faculty}
+                touched={touched.faculty}
+                customValue={customFaculty}
+                onCustomValueChange={setCustomFaculty}
+                customPlaceholder={messages.register.placeholders.enterFaculty}
+                otherOptionLabel={messages.register.other}
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.major}<span className="text-red-500">*</span></label>
-                <p className="text-sm text-[var(--muted-foreground)] opacity-70 mb-1">{messages.register.selectMajorHint}</p>
-                <select
-                  value={form.major}
-                  onChange={(e) => update("major", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, major: true }))}
-                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  aria-invalid={Boolean(fieldErrors.major) || undefined}
-                  aria-describedby={fieldErrors.major ? "major-error" : undefined}
-                  required
-                >
-                  <option value="">{messages.register.selectMajor}</option>
-                  {(form.faculty && form.faculty !== OTHER_VALUE ? FACULTY_TO_MAJORS[form.faculty] : []).map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                  <option value={OTHER_VALUE}>{messages.register.other}</option>
-                </select>
-                {form.major === OTHER_VALUE ? (
-                  <input
-                    type="text"
-                    value={customMajor}
-                    onChange={(e) => setCustomMajor(e.target.value)}
-                    placeholder={messages.register.placeholders.enterMajor}
-                    className="mt-2 w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  />
-                ) : null}
-                {touched.major && fieldErrors.major ? (
-                  <p id="major-error" className="mt-1 text-xs text-red-600">{fieldErrors.major}</p>
-                ) : null}
-              </div>
+              <SelectWithCustom
+                label={messages.register.labels.major}
+                value={form.major}
+                onChange={(value) => update("major", value)}
+                onBlur={() => setTouched((t) => ({ ...t, major: true }))}
+                options={(form.faculty && form.faculty !== OTHER_VALUE ? FACULTY_TO_MAJORS[form.faculty] : []).map((m) => ({ value: m, label: m }))}
+                placeholder={messages.register.selectMajor}
+                required
+                error={fieldErrors.major}
+                touched={touched.major}
+                customValue={customMajor}
+                onCustomValueChange={setCustomMajor}
+                customPlaceholder={messages.register.placeholders.enterMajor}
+                otherOptionLabel={messages.register.other}
+                hint={messages.register.selectMajorHint}
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.phone}<span className="text-red-500">*</span></label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => update("phone", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
-                  className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.phone}
-                  aria-invalid={Boolean(fieldErrors.phone) || undefined}
-                  aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
-                  required
-                />
-                {touched.phone && fieldErrors.phone ? (
-                  <p id="phone-error" className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>
-                ) : null}
-              </div>
+              <TextInput
+                label={messages.register.labels.phone}
+                value={form.phone}
+                onChange={(value) => update("phone", value)}
+                onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                placeholder={messages.register.placeholders.phone}
+                required
+                error={fieldErrors.phone}
+                touched={touched.phone}
+                type="tel"
+              />
 
-          <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.email}<span className="text-red-500">*</span></label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-              placeholder={messages.register.placeholders.email}
-              aria-invalid={Boolean(fieldErrors.email) || undefined}
-              aria-describedby={fieldErrors.email ? "email-error" : undefined}
-              required
-            />
-            {touched.email && fieldErrors.email ? (
-              <p id="email-error" className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
-            ) : null}
-          </div>
+              <TextInput
+                label={messages.register.labels.email}
+                value={form.email}
+                onChange={(value) => update("email", value)}
+                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                placeholder={messages.register.placeholders.email}
+                required
+                error={fieldErrors.email}
+                touched={touched.email}
+                type="email"
+              />
 
-          <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.labels.otherContact}</label>
-            <input
-              type="text"
-                  value={form.contactOther}
-                  onChange={(e) => update("contactOther", e.target.value)}
-              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.otherContact}
-            />
-              </div>
+              <TextInput
+                label={messages.register.labels.otherContact}
+                value={form.contactOther}
+                onChange={(value) => update("contactOther", value)}
+                placeholder={messages.register.placeholders.otherContact}
+              />
             </div>
           </section>
             ) : null}
@@ -919,99 +806,19 @@ export default function RegisterPage() {
                     const slotErrorKey = `interviewSlot.${index}`;
                     const slotError = touched.interviewSlots ? fieldErrors[slotErrorKey] : undefined;
                     const slotHasError = Boolean(slotError);
-                    const timeInputClass =
-                      "w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border focus:outline-none focus:ring-2 " +
-                      (slotHasError ? "border-red-400 focus:ring-red-400" : "border-[var(--color-muted-200)] focus:ring-[var(--color-accent-orange)]");
                     return (
-                      <div
+                      <InterviewSlotInput
                         key={index}
-                        className={
-                          "rounded-[var(--radius-md)] border p-4 space-y-4 shadow-[0_1px_3px_rgba(15,23,42,0.06)] " +
-                          (slotHasError ? "border-red-300 bg-red-50/40" : "border-[var(--color-muted-200)]")
-                        }
-                        aria-invalid={slotHasError || undefined}
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-sm font-medium mb-1">
-                              {messages.register.interview.dateLabel}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="date"
-                              value={slot.date}
-                              onChange={(e) => updateInterviewSlot(index, { date: e.target.value })}
-                              onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
-                              className="w-full h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                              required
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-sm font-medium mb-1">
-                                {messages.register.interview.startLabel}
-                                <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="time"
-                                value={slot.startTime}
-                                onChange={(e) => updateInterviewSlot(index, { startTime: e.target.value })}
-                                onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
-                                aria-invalid={slotHasError || undefined}
-                                className={timeInputClass}
-                                required
-                              />
-                              {slot.startTime && (
-                                <p className="text-sm text-[var(--muted-foreground)] mt-2 text-center opacity-70">{messages.register.interview.timeHint} {normalizeTimeTo24Hour(slot.startTime)}.</p>
-                              )}
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">
-                                {messages.register.interview.endLabel}
-                                <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="time"
-                                value={slot.endTime}
-                                onChange={(e) => updateInterviewSlot(index, { endTime: e.target.value })}
-                                onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
-                                aria-invalid={slotHasError || undefined}
-                                className={timeInputClass}
-                                required
-                              />
-                              {slot.endTime && (
-                                <p className="text-sm text-[var(--muted-foreground)] mt-2 text-center opacity-70">{messages.register.interview.timeHint} {normalizeTimeTo24Hour(slot.endTime)}.</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                          <div className="w-full md:w-auto">
-                            <label className="block text-sm font-medium mb-1">
-                              {messages.register.interview.modeLabel}
-                              <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                              value={slot.mode}
-                              onChange={(e) => updateInterviewSlot(index, { mode: e.target.value as InterviewMode })}
-                              onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
-                              className="w-full md:w-48 h-11 px-3 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                            >
-                              <option value="online">{messages.register.interview.modeOptions.online}</option>
-                              <option value="onsite">{messages.register.interview.modeOptions.onsite}</option>
-                            </select>
-                            <p className="text-sm text-[var(--muted-foreground)] mt-3 text-center opacity-70">{messages.register.interview.modeHint}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeInterviewSlot(index)}
-                            className="inline-flex items-center justify-center rounded-full px-4 h-10 text-sm font-medium border border-[var(--color-muted-300)] text-[var(--muted-foreground)] hover:bg-[var(--color-muted-200)] disabled:opacity-60"
-                            disabled={form.interviewSlots.length === 1}
-                          >
-                            {messages.register.interview.removeSlot}
-                          </button>
-                        </div>
-                      </div>
+                        slot={slot}
+                        index={index}
+                        onUpdate={updateInterviewSlot}
+                        onRemove={removeInterviewSlot}
+                        canRemove={form.interviewSlots.length > 1}
+                        hasError={slotHasError}
+                        normalizeTimeTo24Hour={normalizeTimeTo24Hour}
+                        onBlur={() => setTouched((t) => ({ ...t, interviewSlots: true }))}
+                        labels={messages.register.interview}
+                      />
                     );
                   })}
                 </div>
@@ -1029,59 +836,43 @@ export default function RegisterPage() {
                 ) : null}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.qWhyLabel}<span className="text-red-500">*</span></label>
-                <textarea
-                  value={form.qWhy}
-                  onChange={(e) => update("qWhy", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, qWhy: true }))}
-                  className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.qWhy}
-                  aria-invalid={Boolean(fieldErrors.qWhy) || undefined}
-                  aria-describedby={fieldErrors.qWhy ? "qWhy-error" : undefined}
-                  required
-                />
-                {touched.qWhy && fieldErrors.qWhy ? (
-                  <p id="qWhy-error" className="mt-1 text-xs text-red-600">{fieldErrors.qWhy}</p>
-                ) : null}
-          </div>
+              <TextArea
+                label={messages.register.qWhyLabel}
+                value={form.qWhy}
+                onChange={(value) => update("qWhy", value)}
+                onBlur={() => setTouched((t) => ({ ...t, qWhy: true }))}
+                placeholder={messages.register.placeholders.qWhy}
+                required
+                error={fieldErrors.qWhy}
+                touched={touched.qWhy}
+              />
 
-          <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.qHowHelpLabel}<span className="text-red-500">*</span></label>
-                <textarea
-                  value={form.qHowHelp}
-                  onChange={(e) => update("qHowHelp", e.target.value)}
-                  onBlur={() => setTouched((t) => ({ ...t, qHowHelp: true }))}
-                  className="w-full min-h-28 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.qHowHelp}
-                  aria-invalid={Boolean(fieldErrors.qHowHelp) || undefined}
-                  aria-describedby={fieldErrors.qHowHelp ? "qHowHelp-error" : undefined}
-                  required
-                />
-                {touched.qHowHelp && fieldErrors.qHowHelp ? (
-                  <p id="qHowHelp-error" className="mt-1 text-xs text-red-600">{fieldErrors.qHowHelp}</p>
-                ) : null}
-          </div>
+              <TextArea
+                label={messages.register.qHowHelpLabel}
+                value={form.qHowHelp}
+                onChange={(value) => update("qHowHelp", value)}
+                onBlur={() => setTouched((t) => ({ ...t, qHowHelp: true }))}
+                placeholder={messages.register.placeholders.qHowHelp}
+                required
+                error={fieldErrors.qHowHelp}
+                touched={touched.qHowHelp}
+              />
 
-          <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.qPortfolioLabel}</label>
-            <textarea
-                  value={form.qPortfolio}
-                  onChange={(e) => update("qPortfolio", e.target.value)}
-                  className="w-full min-h-24 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.qPortfolio}
-            />
-          </div>
+              <TextArea
+                label={messages.register.qPortfolioLabel}
+                value={form.qPortfolio}
+                onChange={(value) => update("qPortfolio", value)}
+                placeholder={messages.register.placeholders.qPortfolio}
+                minHeight="min-h-24"
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">{messages.register.qExpectLabel}</label>
-                <textarea
-                  value={form.qExpect}
-                  onChange={(e) => update("qExpect", e.target.value)}
-                  className="w-full min-h-24 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-muted-50)] border border-[var(--color-muted-200)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-orange)]"
-                  placeholder={messages.register.placeholders.qExpect}
-                />
-              </div>
+              <TextArea
+                label={messages.register.qExpectLabel}
+                value={form.qExpect}
+                onChange={(value) => update("qExpect", value)}
+                placeholder={messages.register.placeholders.qExpect}
+                minHeight="min-h-24"
+              />
             </div>
           </section>
           ) : null}
