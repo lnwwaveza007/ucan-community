@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { getCollection } from "./mongodb";
 
 export type SlideshowItem = { src: string; alt?: string };
-export type ProgramItem = { title: string; date: string; description?: string; image?: string };
+export type ProgramItem = { title: string; date: string; description?: string; image?: string; registerPath?: string };
 export type PartnerItem = { name: string; logo: string };
 
 export type SiteContent = {

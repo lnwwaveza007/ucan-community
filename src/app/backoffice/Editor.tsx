@@ -148,68 +148,81 @@ export default function Editor() {
       <section className="border rounded-lg p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Upcoming Programs</h2>
-          <button onClick={() => update("upcomingPrograms", [...data.upcomingPrograms, { title: "", date: "", description: "", image: "" }])} className="px-3 py-1 border rounded">Add Program</button>
+          <button onClick={() => update("upcomingPrograms", [...data.upcomingPrograms, { title: "", date: "", description: "", image: "", registerPath: "" }])} className="px-3 py-1 border rounded">Add Program</button>
         </div>
         <div className="mt-3 grid gap-3">
           {data.upcomingPrograms.map((p, idx) => (
-            <div key={idx} className="grid md:grid-cols-6 gap-2 items-center">
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => moveItem("upcomingPrograms", idx, "up")}
-                    disabled={idx === 0}
-                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Move up"
-                  >
-                    <IoArrowUp className="text-sm" />
-                  </button>
-                  <button
-                    onClick={() => moveItem("upcomingPrograms", idx, "down")}
-                    disabled={idx === data.upcomingPrograms.length - 1}
-                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Move down"
-                  >
-                    <IoArrowDown className="text-sm" />
-                  </button>
+            <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+              <div className="grid md:grid-cols-2 gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => moveItem("upcomingPrograms", idx, "up")}
+                      disabled={idx === 0}
+                      className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Move up"
+                    >
+                      <IoArrowUp className="text-sm" />
+                    </button>
+                    <button
+                      onClick={() => moveItem("upcomingPrograms", idx, "down")}
+                      disabled={idx === data.upcomingPrograms.length - 1}
+                      className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Move down"
+                    >
+                      <IoArrowDown className="text-sm" />
+                    </button>
+                  </div>
+                  <input value={p.title} onChange={(e) => {
+                    const next = [...data.upcomingPrograms];
+                    next[idx] = { ...next[idx], title: e.target.value } as ProgramItem;
+                    update("upcomingPrograms", next);
+                  }} placeholder="Title" className="border rounded px-2 py-1 flex-1" />
                 </div>
-                <input value={p.title} onChange={(e) => {
+                <input value={p.date} onChange={(e) => {
                   const next = [...data.upcomingPrograms];
-                  next[idx] = { ...next[idx], title: e.target.value } as ProgramItem;
+                  next[idx] = { ...next[idx], date: e.target.value } as ProgramItem;
                   update("upcomingPrograms", next);
-                }} placeholder="Title" className="border rounded px-2 py-1 flex-1" />
+                }} placeholder="Date" className="border rounded px-2 py-1" />
               </div>
-              <input value={p.date} onChange={(e) => {
-                const next = [...data.upcomingPrograms];
-                next[idx] = { ...next[idx], date: e.target.value } as ProgramItem;
-                update("upcomingPrograms", next);
-              }} placeholder="Date" className="border rounded px-2 py-1" />
-              <input value={p.description ?? ""} onChange={(e) => {
-                const next = [...data.upcomingPrograms];
-                next[idx] = { ...next[idx], description: e.target.value } as ProgramItem;
-                update("upcomingPrograms", next);
-              }} placeholder="Description" className="border rounded px-2 py-1" />
-              <input value={p.image ?? ""} onChange={(e) => {
-                const next = [...data.upcomingPrograms];
-                next[idx] = { ...next[idx], image: e.target.value } as ProgramItem;
-                update("upcomingPrograms", next);
-              }} placeholder="/images/programs/mockup4.jpg" className="border rounded px-2 py-1" />
-              <div className="flex gap-2">
-                <button onClick={() => setPickerOpen(() => (url: string) => {
+              <div className="grid md:grid-cols-2 gap-2 mb-2">
+                <input value={p.description ?? ""} onChange={(e) => {
                   const next = [...data.upcomingPrograms];
-                  next[idx] = { ...next[idx], image: url } as ProgramItem;
+                  next[idx] = { ...next[idx], description: e.target.value } as ProgramItem;
                   update("upcomingPrograms", next);
-                  setPickerOpen(null);
-                })} className="px-2 py-1 border rounded">Select</button>
+                }} placeholder="Description" className="border rounded px-2 py-1" />
+                <input value={p.registerPath ?? ""} onChange={(e) => {
+                  const next = [...data.upcomingPrograms];
+                  next[idx] = { ...next[idx], registerPath: e.target.value } as ProgramItem;
+                  update("upcomingPrograms", next);
+                }} placeholder="Register Path (e.g., /startup-playground-4)" className="border rounded px-2 py-1" />
               </div>
-              <div className="h-20 w-32 border rounded overflow-hidden bg-white/40 grid place-items-center">
-                {p.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={toDisplaySrc(p.image)} alt={p.title || "preview"} className="object-cover w-full h-full" />
-                ) : (
-                  <span className="text-xs text-gray-500">No image</span>
-                )}
+              <div className="grid md:grid-cols-3 gap-2 items-center">
+                <input value={p.image ?? ""} onChange={(e) => {
+                  const next = [...data.upcomingPrograms];
+                  next[idx] = { ...next[idx], image: e.target.value } as ProgramItem;
+                  update("upcomingPrograms", next);
+                }} placeholder="/images/programs/mockup4.jpg" className="border rounded px-2 py-1" />
+                <div className="flex gap-2">
+                  <button onClick={() => setPickerOpen(() => (url: string) => {
+                    const next = [...data.upcomingPrograms];
+                    next[idx] = { ...next[idx], image: url } as ProgramItem;
+                    update("upcomingPrograms", next);
+                    setPickerOpen(null);
+                  })} className="px-2 py-1 border rounded">Select Image</button>
+                </div>
+                <div className="h-20 w-32 border rounded overflow-hidden bg-white grid place-items-center">
+                  {p.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={toDisplaySrc(p.image)} alt={p.title || "preview"} className="object-cover w-full h-full" />
+                  ) : (
+                    <span className="text-xs text-gray-500">No image</span>
+                  )}
+                </div>
               </div>
-              <button onClick={() => update("upcomingPrograms", data.upcomingPrograms.filter((_, i) => i !== idx))} className="justify-self-start text-red-600">Remove</button>
+              <div className="mt-2">
+                <button onClick={() => update("upcomingPrograms", data.upcomingPrograms.filter((_, i) => i !== idx))} className="text-red-600 text-sm">Remove Program</button>
+              </div>
             </div>
           ))}
         </div>

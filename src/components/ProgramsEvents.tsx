@@ -4,7 +4,7 @@ import { toDisplaySrc } from "@/lib/image";
 import { motion } from "motion/react";
 import { useI18n } from "@/lib/i18n/context";
 
-export type ProgramCard = { title: string; date: string; description?: string; image?: string };
+export type ProgramCard = { title: string; date: string; description?: string; image?: string; registerPath?: string };
 
 export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upcomingPrograms: ProgramCard[]; pastPrograms: ProgramCard[] }) {
   const { messages } = useI18n();
@@ -63,16 +63,19 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
                       {i.title}
                     </div>
                     <div className="text-sm text-[var(--color-muted-700)] mt-1">{i.description}</div>
-                    <div className="mt-4">
-                      <motion.button
-                        className="group relative rounded-[999px] px-5 h-10 font-medium text-white"
-                        whileHover={{ y: -2, scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <span className="absolute inset-0 rounded-[999px] bg-gradient-to-r from-fuchsia-600 via-sky-600 to-emerald-600 opacity-90 transition group-hover:opacity-100" />
-                        <span className="relative">{messages.programs.registerCta}</span>
-                      </motion.button>
-                    </div>
+                    {i.registerPath && (
+                      <div className="mt-4">
+                        <motion.a
+                          href={i.registerPath}
+                          className="group relative inline-flex items-center justify-center rounded-[999px] px-5 h-10 font-medium text-white"
+                          whileHover={{ y: -2, scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <span className="absolute inset-0 rounded-[999px] bg-gradient-to-r from-fuchsia-600 via-sky-600 to-emerald-600 opacity-90 transition group-hover:opacity-100" />
+                          <span className="relative">{messages.programs.registerCta}</span>
+                        </motion.a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
