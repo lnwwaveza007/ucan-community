@@ -35,17 +35,17 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
               whileHover={{ y: -4 }}
             >
               {/* Gradient border wrapper */}
-              <div className="p-[1px] bg-gradient-to-r from-fuchsia-500 via-sky-500 to-emerald-500">
-                <div className="relative rounded-[calc(var(--radius-lg))] bg-white dark:bg-[var(--color-card-dark)]">
+              <div className="p-[1px] bg-gradient-to-r from-fuchsia-500 via-sky-500 to-emerald-500 h-full">
+                <div className="relative rounded-[calc(var(--radius-lg))] bg-white dark:bg-[var(--color-card-dark)] h-full">
                   {/* Corner glow accents */}
                   <div className="pointer-events-none absolute -inset-px rounded-[calc(var(--radius-lg))] opacity-20 [mask-image:radial-gradient(40%_40%_at_0%_0%,black,transparent)] bg-fuchsia-400/30" />
                   <div className="pointer-events-none absolute -inset-px rounded-[calc(var(--radius-lg))] opacity-20 [mask-image:radial-gradient(40%_40%_at_100%_100%,black,transparent)] bg-sky-400/30" />
 
                   {/* Content */}
                   <div className="p-4">
-                    <div className="relative">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-lg)] bg-gray-100">
                       {i.image ? (
-                        <Image src={toDisplaySrc(i.image)} alt={i.title} width={800} height={600} className="w-full h-full object-cover rounded-[var(--radius-lg)]" />
+                        <Image src={toDisplaySrc(i.image)} alt={i.title} width={800} height={600} className="w-full h-full object-cover" />
                       ) : null}
                       {/* Only upcoming badge */}
                       <div className="absolute top-2 left-2">
@@ -99,7 +99,9 @@ export default function ProgramsEvents({ upcomingPrograms, pastPrograms }: { upc
                 <div className="text-sm text-[var(--color-muted-700)]">{i.date}</div>
                 <div className="font-medium">{i.title}</div> 
                 {i.image ? (
-                  <Image src={toDisplaySrc(i.image)} alt={i.title} width={800} height={600} className="w-full object-cover rounded-[var(--radius-lg)] mt-4" />
+                  <div className="aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-lg)] mt-4 bg-gray-100">
+                    <Image src={toDisplaySrc(i.image)} alt={i.title} width={800} height={600} className="w-full h-full object-cover" />
+                  </div>
                 ) : null}
               </motion.div>
             ))}

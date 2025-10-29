@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { SiteContent, SlideshowItem, ProgramItem, PartnerItem } from "@/lib/content";
 import MediaPicker from "./MediaPicker";
 import { toDisplaySrc } from "@/lib/image";
+import { IoArrowUp, IoArrowDown } from "react-icons/io5";
 
 type Editable = SiteContent;
 
@@ -64,6 +65,19 @@ export default function Editor() {
     setData(JSON.parse(JSON.stringify(original)) as Editable);
   }
 
+  function moveItem<K extends keyof Editable>(key: K, index: number, direction: "up" | "down") {
+    if (!data) return;
+    const array = data[key] as unknown[];
+    if (!Array.isArray(array)) return;
+    
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= array.length) return;
+    
+    const newArray = [...array];
+    [newArray[index], newArray[newIndex]] = [newArray[newIndex], newArray[index]];
+    update(key, newArray as Editable[K]);
+  }
+
   // upload handled inside MediaPicker
 
   if (!data) return <div>Loading...</div>;
@@ -79,11 +93,31 @@ export default function Editor() {
         <div className="mt-3 grid gap-3">
           {data.slideshow.map((s, idx) => (
             <div key={idx} className="grid md:grid-cols-4 gap-2 items-center">
-              <input value={s.src} onChange={(e) => {
-                const next = [...data.slideshow];
-                next[idx] = { ...next[idx], src: e.target.value } as SlideshowItem;
-                update("slideshow", next);
-              }} placeholder="/images/slide-show/test1.jpg" className="border rounded px-2 py-1" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveItem("slideshow", idx, "up")}
+                    disabled={idx === 0}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move up"
+                  >
+                    <IoArrowUp className="text-sm" />
+                  </button>
+                  <button
+                    onClick={() => moveItem("slideshow", idx, "down")}
+                    disabled={idx === data.slideshow.length - 1}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move down"
+                  >
+                    <IoArrowDown className="text-sm" />
+                  </button>
+                </div>
+                <input value={s.src} onChange={(e) => {
+                  const next = [...data.slideshow];
+                  next[idx] = { ...next[idx], src: e.target.value } as SlideshowItem;
+                  update("slideshow", next);
+                }} placeholder="/images/slide-show/test1.jpg" className="border rounded px-2 py-1 flex-1" />
+              </div>
               <div className="flex gap-2">
                 <button onClick={() => setPickerOpen(() => (url: string) => {
                   const next = [...data.slideshow];
@@ -119,11 +153,31 @@ export default function Editor() {
         <div className="mt-3 grid gap-3">
           {data.upcomingPrograms.map((p, idx) => (
             <div key={idx} className="grid md:grid-cols-6 gap-2 items-center">
-              <input value={p.title} onChange={(e) => {
-                const next = [...data.upcomingPrograms];
-                next[idx] = { ...next[idx], title: e.target.value } as ProgramItem;
-                update("upcomingPrograms", next);
-              }} placeholder="Title" className="border rounded px-2 py-1" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveItem("upcomingPrograms", idx, "up")}
+                    disabled={idx === 0}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move up"
+                  >
+                    <IoArrowUp className="text-sm" />
+                  </button>
+                  <button
+                    onClick={() => moveItem("upcomingPrograms", idx, "down")}
+                    disabled={idx === data.upcomingPrograms.length - 1}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move down"
+                  >
+                    <IoArrowDown className="text-sm" />
+                  </button>
+                </div>
+                <input value={p.title} onChange={(e) => {
+                  const next = [...data.upcomingPrograms];
+                  next[idx] = { ...next[idx], title: e.target.value } as ProgramItem;
+                  update("upcomingPrograms", next);
+                }} placeholder="Title" className="border rounded px-2 py-1 flex-1" />
+              </div>
               <input value={p.date} onChange={(e) => {
                 const next = [...data.upcomingPrograms];
                 next[idx] = { ...next[idx], date: e.target.value } as ProgramItem;
@@ -169,11 +223,31 @@ export default function Editor() {
         <div className="mt-3 grid gap-3">
           {data.pastPrograms.map((p, idx) => (
             <div key={idx} className="grid md:grid-cols-6 gap-2 items-center">
-              <input value={p.title} onChange={(e) => {
-                const next = [...data.pastPrograms];
-                next[idx] = { ...next[idx], title: e.target.value } as ProgramItem;
-                update("pastPrograms", next);
-              }} placeholder="Title" className="border rounded px-2 py-1" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveItem("pastPrograms", idx, "up")}
+                    disabled={idx === 0}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move up"
+                  >
+                    <IoArrowUp className="text-sm" />
+                  </button>
+                  <button
+                    onClick={() => moveItem("pastPrograms", idx, "down")}
+                    disabled={idx === data.pastPrograms.length - 1}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move down"
+                  >
+                    <IoArrowDown className="text-sm" />
+                  </button>
+                </div>
+                <input value={p.title} onChange={(e) => {
+                  const next = [...data.pastPrograms];
+                  next[idx] = { ...next[idx], title: e.target.value } as ProgramItem;
+                  update("pastPrograms", next);
+                }} placeholder="Title" className="border rounded px-2 py-1 flex-1" />
+              </div>
               <input value={p.date} onChange={(e) => {
                 const next = [...data.pastPrograms];
                 next[idx] = { ...next[idx], date: e.target.value } as ProgramItem;
@@ -219,11 +293,31 @@ export default function Editor() {
         <div className="mt-3 grid gap-3">
           {data.communityPartners.map((p, idx) => (
             <div key={idx} className="grid md:grid-cols-4 gap-2 items-center">
-              <input value={p.name} onChange={(e) => {
-                const next = [...data.communityPartners];
-                next[idx] = { ...next[idx], name: e.target.value } as PartnerItem;
-                update("communityPartners", next);
-              }} placeholder="Name" className="border rounded px-2 py-1" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveItem("communityPartners", idx, "up")}
+                    disabled={idx === 0}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move up"
+                  >
+                    <IoArrowUp className="text-sm" />
+                  </button>
+                  <button
+                    onClick={() => moveItem("communityPartners", idx, "down")}
+                    disabled={idx === data.communityPartners.length - 1}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move down"
+                  >
+                    <IoArrowDown className="text-sm" />
+                  </button>
+                </div>
+                <input value={p.name} onChange={(e) => {
+                  const next = [...data.communityPartners];
+                  next[idx] = { ...next[idx], name: e.target.value } as PartnerItem;
+                  update("communityPartners", next);
+                }} placeholder="Name" className="border rounded px-2 py-1 flex-1" />
+              </div>
               <input value={p.logo} onChange={(e) => {
                 const next = [...data.communityPartners];
                 next[idx] = { ...next[idx], logo: e.target.value } as PartnerItem;
@@ -259,11 +353,31 @@ export default function Editor() {
         <div className="mt-3 grid gap-3">
           {data.partners.map((p, idx) => (
             <div key={idx} className="grid md:grid-cols-4 gap-2 items-center">
-              <input value={p.name} onChange={(e) => {
-                const next = [...data.partners];
-                next[idx] = { ...next[idx], name: e.target.value } as PartnerItem;
-                update("partners", next);
-              }} placeholder="Name" className="border rounded px-2 py-1" />
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => moveItem("partners", idx, "up")}
+                    disabled={idx === 0}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move up"
+                  >
+                    <IoArrowUp className="text-sm" />
+                  </button>
+                  <button
+                    onClick={() => moveItem("partners", idx, "down")}
+                    disabled={idx === data.partners.length - 1}
+                    className="p-1 border rounded hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Move down"
+                  >
+                    <IoArrowDown className="text-sm" />
+                  </button>
+                </div>
+                <input value={p.name} onChange={(e) => {
+                  const next = [...data.partners];
+                  next[idx] = { ...next[idx], name: e.target.value } as PartnerItem;
+                  update("partners", next);
+                }} placeholder="Name" className="border rounded px-2 py-1 flex-1" />
+              </div>
               <input value={p.logo} onChange={(e) => {
                 const next = [...data.partners];
                 next[idx] = { ...next[idx], logo: e.target.value } as PartnerItem;
