@@ -9,6 +9,8 @@ import { IoArrowBack } from "react-icons/io5";
 import { TextInput, TextArea, Select, SelectWithCustom, RoleCard } from "@/components/form";
 import { useI18n } from "@/lib/i18n/context";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import logo from "@/public/images/logo.png";
+import Image from "next/image";
 
 // Faculties and majors (departments/programs) for KMUTT
 const OTHER_VALUE = "__OTHER__";
@@ -300,7 +302,13 @@ export default function StartupPlayground4Page() {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-3">{messages.startupPlayground.title}</h1>
+          <Image 
+            src="/images/logo.png"
+            alt="Startup Playground 4 Banner"
+            className="mx-auto mt-6 rounded-lg shadow-md"
+            width={600}
+            height={200}
+          />
           <p className="text-lg text-[var(--muted-foreground)]">
             {messages.startupPlayground.subtitle}
           </p>
