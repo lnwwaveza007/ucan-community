@@ -239,6 +239,46 @@ export type Messages = {
     emphasize: string;
     backHome: string;
   };
+  entrepreneurForum: {
+    title: string;
+    subtitle: string;
+    backToHome: string;
+    section1Title: string;
+    labels: {
+      fullname: string;
+      contact: string;
+      phone: string;
+      email: string;
+      affiliation: string;
+      affiliationDetail: string;
+    };
+    placeholders: {
+      fullname: string;
+      phone: string;
+      email: string;
+      affiliationDetail: string;
+    };
+    posterSection: {
+      title: string;
+      description: string;
+      confirmation: string;
+    };
+    submitButton: string;
+    submitting: string;
+    footerNote: string;
+    errors: {
+      required: string;
+      emailInvalid: string;
+      phoneInvalid: string;
+      submitFailed: string;
+    };
+  };
+  entrepreneurForumSuccess: {
+    title: string;
+    message: string;
+    emphasize: string;
+    backHome: string;
+  };
 };
 
 
