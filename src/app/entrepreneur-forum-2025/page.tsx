@@ -28,8 +28,8 @@ type AffiliationOption = {
 const AFFILIATION_OPTIONS: AffiliationOption[] = [
   {
     value: "kmutt_startup_playground",
-    labelTh: "นักศึกษา มจธ. (KMUTT Startup Playground)",
-    labelEn: "KMUTT Students (KMUTT Startup Playground)",
+    labelTh: "4th startup playground 2025",
+    labelEn: "4th startup playground 2025",
     needsDetail: false,
   },
   {
