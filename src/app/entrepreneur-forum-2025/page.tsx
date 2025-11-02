@@ -51,6 +51,12 @@ const AFFILIATION_OPTIONS: AffiliationOption[] = [
     needsDetail: true,
   },
   {
+    value: "midi",
+    labelTh: "MIDI",
+    labelEn: "MIDI",
+    needsDetail: false,
+  },
+  {
     value: "staff",
     labelTh: "Staff",
     labelEn: "Staff",
