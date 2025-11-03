@@ -364,14 +364,14 @@ export default function EntrepreneurForum2025Page() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="overflow-hidden rounded-lg border border-[var(--border)]">
                   <img
-                    src="/images/register-forum-2025/poster1.jpg"
+                    src="/images/register-forum-2025/poster1.png"
                     alt="Entrepreneur Forum 2025 Poster 1"
                     className="w-full h-auto object-cover"
                   />
                 </div>
                 <div className="overflow-hidden rounded-lg border border-[var(--border)]">
                   <img
-                    src="/images/register-forum-2025/poster2.jpg"
+                    src="/images/register-forum-2025/poster2.png"
                     alt="Entrepreneur Forum 2025 Poster 2"
                     className="w-full h-auto object-cover"
                   />
